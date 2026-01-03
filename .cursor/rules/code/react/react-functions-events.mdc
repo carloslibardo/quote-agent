@@ -1,0 +1,132 @@
+---
+applyTo: '**/*.tsx'
+description: Guidelines for function declarations, event handlers, and performance patterns in React components.
+---
+
+# React Functions & Event Handlers
+
+## Function Declaration Principles
+
+- **Prefer named function declarations for all exported and component functions.**
+- **Use arrow functions for event handlers and callbacks only.**
+- **No inline function definitions in JSX for performance-critical components.**
+- **No parameter mutation. Always return new data.**
+- **Use explicit return types for exported functions/hooks.**
+
+  ```tsx
+  // Good
+  function handleClick() {
+    setOpen(true);
+  }
+
+  // Good (event handler)
+  const onClick = React.useCallback(() => setOpen(true), []);
+  ```
+
+## Event Handler Patterns
+
+### Curried Function Approach for Event Handlers
+
+The preference for the curried function approach over inline arrow functions for React event handlers is based on several important performance and code quality considerations:
+
+**1. Function Reference Stability**
+
+```jsx
+// ✅ Preferred: Returns the same function reference for same params
+const handleOnClick = (params) => (event) => {
+  // handler logic
+};
+
+<button onClick={handleOnClick(params)} />;
+```
+
+```jsx
+// ❌ Avoid: Creates new function on every render
+<button onClick={() => handleOnClick(params)} />
+```
+
+**2. Prevents Unnecessary Re-renders**
+
+- The curried approach creates a stable function reference when parameters don't change
+- Inline arrow functions create new function instances on every render, which can trigger unnecessary re-renders of child components that receive the handler as a prop
+- This is especially important when the button is a memoized component (`React.memo`)
+
+### Code Quality Advantages
+
+**1. Cleaner JSX**
+
+```jsx
+// ✅ Clean and readable
+<button onClick={handleOnClick(userId, 'delete')} />
+
+// ❌ More verbose
+<button onClick={() => handleOnClick(userId, 'delete')} />
+```
+
+**2. Better Reusability**
+
+```jsx
+const handleOnClick = (action) => (event) => {
+  console.log(`Performing ${action}`);
+}
+
+// Can be reused easily
+<button onClick={handleOnClick('save')}>Save</button>
+<button onClick={handleOnClick('cancel')}>Cancel</button>
+<button onClick={handleOnClick('delete')}>Delete</button>
+```
+
+**3. Easier Testing**
+
+```jsx
+// The curried function can be tested independently
+const handler = handleOnClick('testAction');
+// Test the returned function
+```
+
+### When to Use Each Approach
+
+**Use Curried Functions When:**
+
+- You need to pass parameters to the handler
+- The component might re-render frequently
+- The handler is passed to memoized child components
+- You want cleaner, more reusable code
+
+**Inline Arrow Functions Are Acceptable When:**
+
+- Simple, one-off handlers with no parameters
+- Performance is not a concern (e.g., components that don't re-render often)
+- Quick prototyping or simple interactions
+
+## Additional Considerations
+
+**Event Parameter Handling:**
+
+```jsx
+// Event parameter is optional and can be omitted if not needed
+const handleOnClick = (params) => (event) => {
+  // event is available if needed
+  event.preventDefault();
+  // Use params
+};
+
+// Or omit event if not needed
+const handleOnClick = (params) => () => {
+  // Just use params
+};
+```
+
+This pattern promotes better performance, cleaner code, and follows React best practices for event handler optimization.
+
+## Functional Programming in React
+
+- **Use pure functions, stateless logic, and composition.**
+- **Map/filter/reduce for list transformations.**
+- **No side effects in render or pure functions.**
+  ```tsx
+  // Good: List transformation outside render
+  const getSortedUsers = (users: User[]) =>
+    users.slice().sort((a, b) => a.name.localeCompare(b.name));
+  ```
+

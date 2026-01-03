@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+
+# MUST Follow Rules Related to the Project
+
+- **ALWAYS update the project structure file tree in the root file `AGENTS.md` when new files, folders, are added, removed, renamed or moved.**
+
+- **ALWAYS use the `AGENTS.md` file as a quick reference for the current project structure.**

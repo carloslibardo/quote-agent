@@ -1,0 +1,45 @@
+---
+applyTo: "**/*.ts, **/*.tsx"
+description: This guide defines clear, scalable, and maintainable standards for React apps using TypeScript. It builds upon the general TypeScript style guide, emphasizing functional programming and React best practices.
+---
+
+# React TypeScript Style Guide (Index)
+
+This guide is split into focused instruction files. Use the links below for details on each topic.
+
+## Core Principles
+
+→ Use: [Core Principles](/.techlibs/guidelines/code/react/react-principles.instructions.md)
+
+## Component Design & Props
+
+→ Use: [Component Design & Props](/.techlibs/guidelines/code/react/react-component-design.instructions.md)
+
+## Hooks & State Management
+
+→ Use: [Hooks & State Management](/.techlibs/guidelines/code/react/react-hooks-state.instructions.md)
+
+## Functions and Event Handlers
+
+→ Use: [Functions and Event Handlers](/.techlibs/guidelines/code/react/react-functions-events.instructions.md)
+
+## Lazy Loading
+
+→ Use: [Lazy Loading](/.techlibs/guidelines/code/react/react-lazy-loading.instructions.md)
+
+## Performance Practices
+
+→ Use: [Performance Practices](/.techlibs/guidelines/code/react/react-performance-practices.instructions.md)
+
+## Error Handling & Testing
+
+→ Use: [Error Handling & Testing](/.techlibs/guidelines/code/react/react-error-testing.instructions.md)
+
+## Formatting, Imports, and Organization
+
+→ Use: [Formatting, Imports, and Organization](/.techlibs/guidelines/code/typescript-formatting-organization.instructions.md)
+
+## General TypeScript Guidance
+
+→ Use: [General TypeScript Guidance](/.techlibs/guidelines/code/typescript/typescript-styleguide.instructions.md)
+

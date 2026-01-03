@@ -1,0 +1,143 @@
+---
+applyTo: '**/*.ts, **/*.tsx'
+description: Guidelines for lazy loading components in React using React.lazy and Suspense to optimize bundle size and performance.
+---
+
+# React Lazy Loading
+
+- Lazy loading is encouraged to optimize bundle size and improve initial page load performance. Use React's `React.lazy` and `Suspense` to load components only when needed (e.g., routes, modals, infrequently used features).
+
+```tsx
+// Good: Lazy loading a heavy modal
+import React, { Suspense } from 'react';
+
+const SettingsModal = React.lazy(() => import('./SettingsModal'));
+
+function Page() {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)}>Open Settings</button>
+      {open && (
+        <Suspense fallback={<div>Loading settings...</div>}>
+          <SettingsModal onClose={() => setOpen(false)} />
+        </Suspense>
+      )}
+    </>
+  );
+}
+```
+
+## When to use lazy loading
+
+- Route-based code splitting (pages/views in SPA/Routing).
+
+```tsx
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+
+const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
+
+function App() {
+  return (
+    <Router>
+      <Route
+        path="/admin"
+        element={
+          <Suspense fallback={<div>Loading admin...</div>}>
+            <AdminPanel />
+          </Suspense>
+        }
+      />
+    </Router>
+  );
+}
+```
+
+- Large, rarely used components (e.g., modals, admin panels, feature flags).
+
+```tsx
+const BetaFeature = React.lazy(() => import('./BetaFeature'));
+
+function FeatureFlaggedArea({ enabled }: { enabled: boolean }) {
+  if (!enabled) return null;
+  return (
+    <Suspense fallback={<div>Loading beta feature...</div>}>
+      <BetaFeature />
+    </Suspense>
+  );
+}
+```
+
+- Components not visible on initial render.
+
+```tsx
+const Sidebar = React.lazy(() => import('./Sidebar'));
+
+function Layout() {
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  return (
+    <>
+      <button onClick={() => setSidebarOpen(true)}>Open Sidebar</button>
+      {sidebarOpen && (
+        <Suspense fallback={<div>Loading sidebar...</div>}>
+          <Sidebar />
+        </Suspense>
+      )}
+    </>
+  );
+}
+```
+
+## When NOT to use lazy loading
+
+- Small, always-rendered components.
+
+```tsx
+// Bad: Lazy loading a button (anti-pattern)
+const MyButton = React.lazy(() => import('./MyButton'));
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MyButton />
+    </Suspense>
+  );
+}
+// Prefer direct import for small or always-used components
+```
+
+- Components required immediately for page layout or above-the-fold content.
+
+```tsx
+// Bad: Lazy loading a header (anti-pattern)
+const MainHeader = React.lazy(() => import('./MainHeader'));
+```
+
+- When it causes noticeable delays or jank in core user flows (e.g., critical login form).
+
+## How to do lazy loading properly
+
+- Always wrap lazy components with `<Suspense fallback={...}>` and provide a meaningful fallback UI.
+- Split at the largest logical unit (page, feature, or modal), not the smallest (single button).
+- Group related components in a single lazy import if they are always used together.
+
+```tsx
+const DashboardWidgets = React.lazy(() => import('./DashboardWidgets'));
+
+function Dashboard() {
+  return (
+    <Suspense fallback={<div>Loading dashboard...</div>}>
+      <DashboardWidgets />
+    </Suspense>
+  );
+}
+```
+
+## Common pitfalls
+
+- Do not lazy load components that are critical for initial paint or essential interaction (e.g., main layout, navigation).
+- Avoid excessive code splitting that leads to waterfall loading patterns.
+- Do not forget to provide a `fallback` for Suspense.
+

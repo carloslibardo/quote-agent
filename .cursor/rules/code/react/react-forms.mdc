@@ -1,0 +1,612 @@
+---
+applyTo: '**/*.tsx'
+description: Guidelines for building forms with react-hook-form and shadcn/ui Field components (v4 pattern).
+---
+
+# React Forms with shadcn/ui
+
+This guide covers building forms in React using React Hook Form, Zod validation, and shadcn/ui **Field** components. The codebase uses the [shadcn/ui v4 Field pattern](https://ui.shadcn.com/docs/components/field) which provides flexible, accessible form field composition.
+
+## Components
+
+**Import from:** `@/shared/components/ui/field`
+
+Available components:
+- `Field` - Core wrapper for a single field
+- `FieldLabel` - Label for form controls
+- `FieldDescription` - Helper text
+- `FieldError` - Error message container
+- `FieldGroup` - Layout wrapper for multiple fields
+- `FieldSet` - Semantic grouping container (renders `<fieldset>`)
+- `FieldLegend` - Legend for FieldSet
+- `FieldSeparator` - Visual divider between sections
+- `FieldContent` - Flex column for grouping label/description when horizontal
+- `FieldTitle` - Title with label styling inside FieldContent
+
+## Form Setup
+
+### Step 1: Define Zod Schema
+
+Always define Zod schemas separately from components for reusability and type safety.
+
+```tsx
+import * as z from "zod";
+
+const formSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  age: z.number().min(18, "Must be at least 18 years old"),
+});
+
+export type FormData = z.infer<typeof formSchema>;
+```
+
+### Step 2: Setup Form with useForm
+
+```tsx
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FormProvider } from "react-hook-form";
+
+const form = useForm<FormData>({
+  resolver: zodResolver(formSchema),
+  mode: "onTouched", // Recommended for better UX
+  defaultValues: {
+    name: "",
+    email: "",
+    age: 18,
+  },
+});
+
+// Wrap form with FormProvider (or use Form from form.tsx if needed)
+<FormProvider {...form}>
+  <form onSubmit={form.handleSubmit(onSubmit)}>
+    {/* Form fields */}
+  </form>
+</FormProvider>
+```
+
+### Validation Modes
+
+Choose appropriate validation mode based on UX requirements:
+
+- `"onSubmit"` (default) - Validate only on form submission
+- `"onBlur"` - Validate when field loses focus
+- `"onChange"` - Validate on every change (can be noisy)
+- `"onTouched"` - Validate on first blur, then on every change (recommended)
+- `"all"` - Validate on both blur and change
+
+## Field Examples
+
+### Basic Input Field
+
+```tsx
+import { Controller, useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Field, FieldLabel, FieldError, FieldGroup } from "@/shared/components/ui/field";
+import { Input } from "@/shared/components/ui/input";
+
+<FormProvider {...form}>
+  <form onSubmit={form.handleSubmit(onSubmit)}>
+    <FieldGroup>
+      <Controller
+        name="name"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="form-name">Name</FieldLabel>
+            <Input
+              {...field}
+              id="form-name"
+              aria-invalid={fieldState.invalid}
+              placeholder="Enter your name"
+            />
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
+        )}
+      />
+    </FieldGroup>
+  </form>
+</FormProvider>
+```
+
+### Textarea Field
+
+```tsx
+import { Textarea } from "@/shared/components/ui/textarea";
+
+<Controller
+  name="description"
+  control={form.control}
+  render={({ field, fieldState }) => (
+    <Field data-invalid={fieldState.invalid}>
+      <FieldLabel htmlFor="form-description">Description</FieldLabel>
+      <Textarea
+        {...field}
+        id="form-description"
+        aria-invalid={fieldState.invalid}
+        placeholder="Enter description"
+        className="min-h-[120px]"
+      />
+      <FieldDescription>
+        Provide a detailed description of your item.
+      </FieldDescription>
+      {fieldState.invalid && (
+        <FieldError errors={[fieldState.error]} />
+      )}
+    </Field>
+  )}
+/>
+```
+
+### Select Field
+
+```tsx
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+
+<Controller
+  name="role"
+  control={form.control}
+  render={({ field, fieldState }) => (
+    <Field data-invalid={fieldState.invalid}>
+      <FieldLabel htmlFor="form-role">Role</FieldLabel>
+      <Select
+        name={field.name}
+        value={field.value}
+        onValueChange={field.onChange}
+      >
+        <SelectTrigger
+          id="form-role"
+          aria-invalid={fieldState.invalid}
+        >
+          <SelectValue placeholder="Select a role" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="admin">Admin</SelectItem>
+          <SelectItem value="user">User</SelectItem>
+        </SelectContent>
+      </Select>
+      {fieldState.invalid && (
+        <FieldError errors={[fieldState.error]} />
+      )}
+    </Field>
+  )}
+/>
+```
+
+### Checkbox Field (Single)
+
+```tsx
+import { Checkbox } from "@/shared/components/ui/checkbox";
+
+<Controller
+  name="acceptTerms"
+  control={form.control}
+  render={({ field, fieldState }) => (
+    <Field
+      orientation="horizontal"
+      data-invalid={fieldState.invalid}
+    >
+      <Checkbox
+        id="form-accept-terms"
+        name={field.name}
+        checked={field.value}
+        onCheckedChange={field.onChange}
+        aria-invalid={fieldState.invalid}
+      />
+      <FieldLabel htmlFor="form-accept-terms">
+        I accept the terms and conditions
+      </FieldLabel>
+      {fieldState.invalid && (
+        <FieldError errors={[fieldState.error]} />
+      )}
+    </Field>
+  )}
+/>
+```
+
+### Checkbox Array Field
+
+```tsx
+import { Checkbox } from "@/shared/components/ui/checkbox";
+
+<Controller
+  name="notifications"
+  control={form.control}
+  render={({ field, fieldState }) => (
+    <FieldSet data-invalid={fieldState.invalid}>
+      <FieldLegend variant="label">Notifications</FieldLegend>
+      <FieldDescription>
+        Select notification types you want to receive.
+      </FieldDescription>
+      <FieldGroup data-slot="checkbox-group">
+        {notificationTypes.map((type) => (
+          <Field
+            key={type.id}
+            orientation="horizontal"
+            data-invalid={fieldState.invalid}
+          >
+            <Checkbox
+              id={`form-notifications-${type.id}`}
+              name={field.name}
+              checked={field.value.includes(type.id)}
+              onCheckedChange={(checked) => {
+                const newValue = checked
+                  ? [...field.value, type.id]
+                  : field.value.filter((v) => v !== type.id);
+                field.onChange(newValue);
+              }}
+              aria-invalid={fieldState.invalid}
+            />
+            <FieldLabel htmlFor={`form-notifications-${type.id}`}>
+              {type.label}
+            </FieldLabel>
+          </Field>
+        ))}
+      </FieldGroup>
+      {fieldState.invalid && (
+        <FieldError errors={[fieldState.error]} />
+      )}
+    </FieldSet>
+  )}
+/>
+```
+
+### Radio Group Field
+
+```tsx
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/shared/components/ui/radio-group";
+
+<Controller
+  name="plan"
+  control={form.control}
+  render={({ field, fieldState }) => (
+    <FieldSet data-invalid={fieldState.invalid}>
+      <FieldLegend>Subscription Plan</FieldLegend>
+      <FieldDescription>
+        Choose your subscription plan.
+      </FieldDescription>
+      <RadioGroup
+        name={field.name}
+        value={field.value}
+        onValueChange={field.onChange}
+        aria-invalid={fieldState.invalid}
+      >
+        {plans.map((plan) => (
+          <FieldLabel
+            key={plan.id}
+            htmlFor={`form-plan-${plan.id}`}
+          >
+            <Field orientation="horizontal" data-invalid={fieldState.invalid}>
+              <FieldContent>
+                <FieldTitle>{plan.title}</FieldTitle>
+                <FieldDescription>{plan.description}</FieldDescription>
+              </FieldContent>
+              <RadioGroupItem
+                value={plan.id}
+                id={`form-plan-${plan.id}`}
+                aria-invalid={fieldState.invalid}
+              />
+            </Field>
+          </FieldLabel>
+        ))}
+      </RadioGroup>
+      {fieldState.invalid && (
+        <FieldError errors={[fieldState.error]} />
+      )}
+    </FieldSet>
+  )}
+/>
+```
+
+### Switch Field
+
+```tsx
+import { Switch } from "@/shared/components/ui/switch";
+
+<Controller
+  name="notifications"
+  control={form.control}
+  render={({ field, fieldState }) => (
+    <Field
+      orientation="horizontal"
+      data-invalid={fieldState.invalid}
+    >
+      <FieldContent>
+        <FieldLabel htmlFor="form-notifications">
+          Email Notifications
+        </FieldLabel>
+        <FieldDescription>
+          Receive email updates about your account.
+        </FieldDescription>
+        {fieldState.invalid && (
+          <FieldError errors={[fieldState.error]} />
+        )}
+      </FieldContent>
+      <Switch
+        id="form-notifications"
+        name={field.name}
+        checked={field.value}
+        onCheckedChange={field.onChange}
+        aria-invalid={fieldState.invalid}
+      />
+    </Field>
+  )}
+/>
+```
+
+## Array Fields with useFieldArray
+
+For dynamic arrays (e.g., multiple email addresses, list items):
+
+```tsx
+import { useFieldArray, Controller } from "react-hook-form";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { X } from "lucide-react";
+
+const { fields, append, remove } = useFieldArray({
+  control: form.control,
+  name: "emails",
+});
+
+<FieldSet className="gap-4">
+  <FieldLegend variant="label">Email Addresses</FieldLegend>
+  <FieldDescription>
+    Add up to 5 email addresses where we can contact you.
+  </FieldDescription>
+  <FieldGroup className="gap-4">
+    {fields.map((field, index) => (
+      <Controller
+        key={field.id} // Always use field.id, not index
+        name={`emails.${index}.address`}
+        control={form.control}
+        render={({ field: controllerField, fieldState }) => (
+          <Field
+            orientation="horizontal"
+            data-invalid={fieldState.invalid}
+          >
+            <Input
+              {...controllerField}
+              id={`form-email-${index}`}
+              aria-invalid={fieldState.invalid}
+              placeholder="name@example.com"
+              type="email"
+            />
+            {fields.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => remove(index)}
+                aria-label={`Remove email ${index + 1}`}
+              >
+                <X />
+              </Button>
+            )}
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
+        )}
+      />
+    ))}
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => append({ address: "" })}
+      disabled={fields.length >= 5}
+    >
+      Add Email Address
+    </Button>
+  </FieldGroup>
+</FieldSet>
+```
+
+**Critical:** Always use `field.id` from `useFieldArray` as the React key, never the array index.
+
+## Field Layout and Orientation
+
+### Vertical Fields (Default)
+
+Default orientation stacks label, control, and helper text—ideal for mobile-first layouts.
+
+```tsx
+<Field>
+  <FieldLabel htmlFor="email">Email</FieldLabel>
+  <Input id="email" type="email" />
+  <FieldDescription>We never share your email.</FieldDescription>
+</Field>
+```
+
+### Horizontal Fields
+
+Set `orientation="horizontal"` to align label and control side-by-side. Use `FieldContent` to keep descriptions aligned.
+
+```tsx
+<Field orientation="horizontal">
+  <FieldContent>
+    <FieldLabel htmlFor="newsletter">Newsletter</FieldLabel>
+    <FieldDescription>Receive updates via email.</FieldDescription>
+  </FieldContent>
+  <Switch id="newsletter" />
+</Field>
+```
+
+### Responsive Fields
+
+Set `orientation="responsive"` for automatic column layouts that adapt to screen size. Apply `@container/field-group` on `FieldGroup` for container queries.
+
+```tsx
+<FieldGroup className="@container/field-group">
+  <Field orientation="responsive">
+    <FieldContent>
+      <FieldLabel htmlFor="name">Name</FieldLabel>
+      <FieldDescription>Your full name.</FieldDescription>
+    </FieldContent>
+    <Input id="name" />
+  </Field>
+</FieldGroup>
+```
+
+## Accessibility Requirements
+
+### Required Attributes
+
+1. **Always include `aria-invalid`** on form controls when field is invalid:
+   ```tsx
+   <Input
+     {...field}
+     aria-invalid={fieldState.invalid}
+   />
+   ```
+
+2. **Always include `data-invalid`** on Field component:
+   ```tsx
+   <Field data-invalid={fieldState.invalid}>
+   ```
+
+3. **Proper label associations** with `htmlFor` and `id`:
+   ```tsx
+   <FieldLabel htmlFor="form-name">Name</FieldLabel>
+   <Input id="form-name" {...field} />
+   ```
+
+4. **Field descriptions** where helpful for better UX:
+   ```tsx
+   <FieldDescription>
+     Provide helpful context about the field.
+   </FieldDescription>
+   ```
+
+5. **Use FieldSet and FieldLegend** for semantic grouping of related controls:
+   ```tsx
+   <FieldSet>
+     <FieldLegend>Payment Method</FieldLegend>
+     <FieldGroup>
+       {/* Related fields */}
+     </FieldGroup>
+   </FieldSet>
+   ```
+
+### Error Handling
+
+- **Always display errors** when field is invalid:
+  ```tsx
+  {fieldState.invalid && (
+    <FieldError errors={[fieldState.error]} />
+  )}
+  ```
+
+- **Handle form-level errors** in addition to field-level:
+  ```tsx
+  {form.formState.errors.root && (
+    <FieldError errors={[form.formState.errors.root]} />
+  )}
+  ```
+
+- **FieldError accepts Standard Schema issues** - Works with Zod, Valibot, ArkType:
+  ```tsx
+  <FieldError errors={[fieldState.error]} />
+  ```
+
+## Form Submission
+
+### Basic Submission Pattern
+
+```tsx
+function onSubmit(data: FormData) {
+  // Handle form submission
+  console.log(data);
+}
+
+<form onSubmit={form.handleSubmit(onSubmit)}>
+  {/* Form fields */}
+</form>
+```
+
+### With Loading State
+
+```tsx
+const [isSubmitting, setIsSubmitting] = useState(false);
+
+const onSubmit = async (data: FormData) => {
+  setIsSubmitting(true);
+  try {
+    await submitForm(data);
+    toast({ title: "Success", description: "Form submitted successfully" });
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error instanceof Error ? error.message : "Submission failed",
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+<Button type="submit" disabled={isSubmitting}>
+  {isSubmitting ? "Submitting..." : "Submit"}
+</Button>
+```
+
+## Best Practices
+
+### 1. Schema Definition
+- Define Zod schemas separately from components
+- Use descriptive error messages in schema
+- Export types from schemas using `z.infer`
+- Use `.refine()` for complex validation that depends on multiple fields
+
+### 2. Form Initialization
+- Always provide `defaultValues` in `useForm`
+- Use `mode: "onTouched"` for better UX (validates on first blur, then on change)
+
+### 3. Field Layout
+- Use `FieldGroup` to wrap related fields
+- Use `FieldSet` and `FieldLegend` for semantically grouped fields (checkboxes, radio groups)
+- Use `FieldSeparator` to visually separate sections
+- Use `FieldContent` when you need to group label and description in horizontal layouts
+
+### 4. Orientation
+- Use `orientation="vertical"` (default) for most fields
+- Use `orientation="horizontal"` for checkboxes and switches with labels
+- Use `orientation="responsive"` with container queries for layouts that adapt to screen size
+
+### 5. Validation
+- Keep validation logic in Zod schemas, not in components
+- Provide clear, user-friendly error messages
+- Always show `FieldError` when `fieldState.invalid` is true
+
+### 6. Performance
+- Use `Controller` for all form fields (recommended pattern)
+- Always use `field.id` as React key when mapping `useFieldArray` fields
+
+## Component API Reference
+
+See the [official shadcn/ui Field documentation](https://ui.shadcn.com/docs/components/field) for complete API reference.
+
+### Key Components
+
+- **FieldSet**: Semantic `<fieldset>` container with spacing presets
+- **FieldLegend**: Legend element for FieldSet (`variant="legend" | "label"`)
+- **FieldGroup**: Layout wrapper that stacks Field components, enables container queries
+- **Field**: Core wrapper (`orientation="vertical" | "horizontal" | "responsive"`, `data-invalid`)
+- **FieldContent**: Flex column for grouping label/description in horizontal layouts
+- **FieldLabel**: Label styled for form controls
+- **FieldTitle**: Title with label styling inside FieldContent
+- **FieldDescription**: Helper text that auto-balances in horizontal layouts
+- **FieldSeparator**: Visual divider between sections (accepts optional content)
+- **FieldError**: Error container (accepts `errors` array or children)

@@ -1,0 +1,125 @@
+---
+applyTo: '**/*.ts'
+description: TypeScript type system guidelines, variable declarations, and type safety best practices.
+---
+
+# TypeScript Type System & Variables
+
+## Type System Principles
+
+- **No `any`.** Use precise types. If unsure, use `unknown` + type guards.
+- Use `interface` for object shapes, `type` for unions/intersections.
+- **No `enum`.** Use `as const` objects and union types.
+  ```tsx
+  // Good: const object + union
+  const Status = { ACTIVE: 'active', INACTIVE: 'inactive' } as const;
+  type Status = (typeof Status)[keyof typeof Status];
+  const status: Status = Status.ACTIVE;
+  ```
+- **Avoid** `object` and broad types.
+  ```tsx
+  // Good
+  interface User {
+    readonly id: string;
+    name: string;
+    email?: string;
+    status: Status;
+  }
+  ```
+- Use optional (`?`) and `readonly` where possible.
+
+## Variable Declarations
+
+- Use `const` by default. Use `let` only for reassignable values.
+- Descriptive, non-abbreviated names unless common acronyms.
+  ```tsx
+  const SESSION_TIMEOUT_MS = 60000;
+  let retryCount = 0;
+  ```
+
+## Type Definitions
+
+- **Use `interface` for object shapes and component props.**
+- **Use `type` for unions, intersections, and computed types.**
+- **Always prefer explicit types over inference for public APIs.**
+- **Use generic types for reusable interfaces.**
+
+  ```tsx
+  // Good: Generic interface
+  interface ApiResponse<T> {
+    data?: T;
+    error?: string;
+    status: 'loading' | 'success' | 'error';
+  }
+
+  // Good: Union type
+  type Theme = 'light' | 'dark' | 'auto';
+
+  // Good: Intersection type
+  type UserWithPermissions = User & {
+    permissions: string[];
+  };
+  ```
+
+## Type Guards and Utilities
+
+- **Use type guards for runtime type checking.**
+
+  ```tsx
+  function isUser(value: unknown): value is User {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'id' in value &&
+      'name' in value
+    );
+  }
+
+  // Usage
+  if (isUser(data)) {
+    // data is now typed as User
+    console.log(data.name);
+  }
+  ```
+
+- **Use utility types for type transformations.**
+
+  ```tsx
+  // Pick specific properties
+  type UserSummary = Pick<User, 'id' | 'name'>;
+
+  // Make all properties optional
+  type PartialUser = Partial<User>;
+
+  // Make all properties required
+  type RequiredUser = Required<User>;
+  ```
+
+## Constants and Enums
+
+- **Use `as const` assertions instead of enums.**
+
+  ```tsx
+  // Good: Object with as const
+  const ButtonSize = {
+    SMALL: 'sm',
+    MEDIUM: 'md',
+    LARGE: 'lg',
+  } as const;
+
+  type ButtonSize = (typeof ButtonSize)[keyof typeof ButtonSize];
+
+  // Bad: Enum
+  enum ButtonSizeEnum {
+    SMALL = 'sm',
+    MEDIUM = 'md',
+    LARGE = 'lg',
+  }
+  ```
+
+- **Use UPPER_CASE for constants.**
+  ```tsx
+  const API_BASE_URL = 'https://api.example.com';
+  const MAX_RETRY_ATTEMPTS = 3;
+  ```
+

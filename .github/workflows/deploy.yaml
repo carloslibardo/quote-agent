@@ -1,0 +1,60 @@
+name: project-deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy Project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Create bunfig.toml
+        run: |
+          cat > bunfig.toml << 'EOF'
+          [install.scopes]
+          "@fortawesome" = { token = "${{ secrets.FONTAWESOME_TOKEN }}", url = "https://npm.fontawesome.com/" }
+          EOF
+
+      - run: bun install --no-progress
+
+      - name: Deploy Convex Functions
+        run: bunx convex deploy
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+
+      - name: Build with environment variables
+        run: bunx --bun vite build
+        env:
+          VITE_CONVEX_URL: ${{ vars.VITE_CONVEX_URL }}
+
+      - name: Create wrangler.toml and worker.js
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          cat > worker.js << EOF
+          export default {
+            async fetch(request, env) {
+              return env.ASSETS.fetch(request);
+            },
+          };
+          EOF
+          cat > wrangler.toml << EOF
+          name = "projects-spa-$REPO_NAME"
+          compatibility_date = "2025-09-08"
+          main = "worker.js"
+          [assets]
+          directory = "./dist/"
+          binding = "ASSETS"
+          not_found_handling = "single-page-application"
+          [[routes]]
+          pattern = "$REPO_NAME.projects.techlibs.io/*"
+          zone_name = "techlibs.io"
+          EOF
+
+      - run: bunx wrangler deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: dab2bafab52ddc7ae16e56224b224959
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_TOKEN }}

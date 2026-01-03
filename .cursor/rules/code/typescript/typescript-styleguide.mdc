@@ -1,0 +1,25 @@
+---
+applyTo: "**/*.ts"
+description: This guide establishes clear, scalable, and maintainable standards for TypeScript web applications, prioritizing **functional programming**, TDD/BDD, and modern best practices.
+---
+
+# TypeScript StyleGuide (Index)
+
+This guide is split into focused instruction files. Use the links below for details on each topic.
+
+## Core Principles and Types
+
+→ See: [Typescript Types Variables](/.techlibs/guidelines/code/typescript/typescript-types-variables.instructions.md)
+
+## Functions and Functional Programming
+
+→ See: [Typescript Functions FP](/.techlibs/guidelines/code/typescript/typescript-functions-fp.instructions.md)
+
+## Error Handling and Testing
+
+→ See: [Typescript Error Testing](/.techlibs/guidelines/code/typescript/typescript-error-testing.instructions.md)
+
+## Formatting, Imports, and Organization
+
+→ See: [Typescript Formatting, Imports and Organization](/.techlibs/guidelines/code/typescript/typescript-formatting-organization.instructions.md)
+

@@ -1,0 +1,117 @@
+---
+description: React Native Architecture Guidelines
+applyTo: '**/*.tsx, **/*.ts'
+---
+
+# React Native & Expo Architecture Guidelines
+
+## Core Engineering Principles
+
+### Apply these principles contextually:
+
+- **YAGNI**: Don't add functionality until needed
+- **KISS**: Prefer simple, readable solutions
+- **SOLID**: Apply when complexity justifies it
+- **Clean Architecture**: Separate business logic from UI and infrastructure
+
+### Architecture Guidelines
+
+- Keep business logic in custom hooks or separate service files
+- UI components should be pure and focused on presentation
+- Use dependency injection for testability
+- Implement proper error boundaries and error handling
+
+## State Management
+
+### React Context for Shared State
+
+- Use React Context for shared/global state (auth, theme, user preferences)
+- Implement custom hooks for local component state and logic
+
+```typescript
+// Custom hook for business logic
+const useUserProfile = () => {
+  // Encapsulate state and logic here
+};
+
+// Context for shared state
+const AuthContext = createContext<AuthContextType>();
+```
+
+### Component Structure
+
+- Prefer functional components with TypeScript
+- Extract complex logic into custom hooks
+- Use composition over inheritance
+
+### Performance Optimization
+
+Don't optimize for performance unless asked to.
+
+### Database Operations
+
+- Use Row Level Security (RLS) policies
+- Implement proper error handling for all queries
+- Use Supabase Realtime for live updates when needed
+- Type your database responses with generated types
+
+## Code Review Checklist
+
+When refactoring, ensure:
+
+1. ✅ Business logic is separated from UI
+2. ✅ Components are typed with TypeScript
+3. ✅ Error states are handled gracefully
+4. ✅ Loading states provide good UX
+5. ✅ Authentication flows are secure
+6. ✅ Database queries are optimized
+7. ✅ Styling follows the design system
+
+## Example Refactoring Pattern
+
+```typescript
+// Before: Mixed concerns
+const ProfileScreen = () => {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Direct Supabase call in component
+    supabase.from('users').select().then(...)
+  }, [])
+
+  return <View>...</View>
+}
+
+// After: Separated concerns
+// hooks/useProfile.ts
+const useProfile = () => {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  // Business logic here
+  return { user, loading, error, refetch }
+}
+
+// screens/ProfileScreen.tsx
+const ProfileScreen = () => {
+  const { user, loading, error } = useProfile()
+
+  if (loading) return <LoadingSpinner />
+  if (error) return <ErrorView error={error} />
+
+  return <ProfileView user={user} />
+}
+```
+
+## Response Format
+
+When providing code suggestions:
+
+1. Explain the "why" behind architectural decisions
+2. Show before/after comparisons for refactoring
+3. Include TypeScript types for all functions and components
+4. Provide error handling examples
+5. Suggest performance optimizations where relevant
+

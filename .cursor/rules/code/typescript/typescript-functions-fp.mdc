@@ -1,0 +1,167 @@
+---
+applyTo: '**/*.ts'
+description: TypeScript function design, functional programming patterns, and semantic design principles.
+---
+
+# TypeScript Functions & Functional Programming
+
+## Function Declaration Principles
+
+- **Prefer named function declarations.**
+  Named functions are better for stack traces, testing, and maintainability.
+
+  ```tsx
+  function fetchUser(id: string): Promise<User> { ... }
+  ```
+
+- Use arrow functions for callbacks or composition.
+
+  ```tsx
+  users.filter((user) => user.status === Status.ACTIVE);
+  ```
+
+- Use parameter destructuring and object parameters for clarity.
+
+  ```tsx
+  function createOrder({ userId, productId }: { userId: string; productId: string }) { ... }
+  ```
+
+- **Do not mutate parameters.** Always return new objects.
+
+  ```tsx
+  // Bad
+  function updateUser(user: User) {
+    user.name = 'NewName';
+  }
+
+  // Good
+  function updateUser(user: User, name: string): User {
+    return { ...user, name };
+  }
+  ```
+
+- **Explicit return types** for public functions.
+
+## Functional Programming Patterns
+
+- **Pure, stateless, composable.**
+- Use higher-order functions, map/filter/reduce, and pipelines.
+
+  ```tsx
+  // Advanced pipeline: filter, map, reduce
+  const filterActive = (users: User[]) =>
+    users.filter((u) => u.status === Status.ACTIVE);
+  const userNames = (users: User[]) => users.map((u) => u.name);
+  const concatNames = (names: string[]) => names.join(', ');
+
+  const getActiveUserNames = (users: User[]) =>
+    concatNames(userNames(filterActive(users)));
+  ```
+
+- Higher-order function example:
+
+  ```tsx
+  const withRetry =
+    <T>(fn: () => Promise<T>, retries: number): Promise<T> =>
+      fn().catch(err => (retries > 0 ? withRetry(fn, retries - 1) : Promise.reject(err)));
+  ```
+
+- Avoid side effects and global state.
+
+## Semantic Functional Design
+
+- **Design functions to clearly express their purpose and intent.**
+  Functions should be named and structured to reflect the domain logic and business value, not just low-level operations.
+
+- **Do:**
+
+  - Use domain language in function names and types.
+  - Make input/output explicit and meaningful.
+  - Compose small, focused functions for higher-level operations.
+  - Express side effects explicitly in return types (e.g., `{ data, error }`, `Promise`).
+
+- **Avoid:**
+  - Generic, vague, or overly technical function names.
+  - Functions that do too much or combine unrelated concerns.
+  - Implicit return types or side effects.
+
+**Examples:**
+
+```tsx
+// BAD: Technical, unclear, side effects hidden
+function process(d: any) {
+  // parses, validates, fetches, and logs in one function
+}
+
+// BAD: Vague, not domain-specific
+function handleData(input: string): string {
+  // does too much, unclear what "handle" means
+  return input
+    .trim()
+    .toUpperCase()
+    .replace(/[aeiou]/g, '');
+}
+
+// GOOD: Semantic, focused, and composable
+type Email = string;
+
+function normalizeEmail(email: Email): Email {
+  return email.trim().toLowerCase();
+}
+
+function isEmailValid(email: Email): boolean {
+  return /\S+@\S+\.\S+/.test(email);
+}
+
+function registerUser({
+  email,
+  password,
+}: {
+  email: Email;
+  password: string;
+}): Promise<{ data?: User; error?: Error }> {
+  const normalized = normalizeEmail(email);
+  if (!isEmailValid(normalized)) {
+    return Promise.resolve({ error: new Error('Invalid email') });
+  }
+  // ...rest of user registration logic
+  return Promise.resolve({
+    data: { id: '...', name: normalized, status: Status.ACTIVE },
+  });
+}
+
+// Usage (composition)
+async function signupFlow(email: string, password: string) {
+  const result = await registerUser({ email, password });
+  if (result.error) {
+    // handle error
+  }
+  // continue with registered user
+}
+```
+
+## Semantic Design Principles
+
+- **Be explicit:** Function behavior and effects must be obvious from the signature and name.
+- **Be focused:** One function, one clear responsibility.
+- **Be composable:** Build complex flows by composing simple, semantic functions.
+
+## Complex Example: Data Transformation Pipeline
+
+```tsx
+type Transaction = { amount: number; type: 'credit' | 'debit' };
+type AccountSummary = { balance: number; credits: number; debits: number };
+
+function summarize(transactions: Transaction[]): AccountSummary {
+  return transactions.reduce(
+    (acc, t) => ({
+      balance:
+        t.type === 'credit' ? acc.balance + t.amount : acc.balance - t.amount,
+      credits: t.type === 'credit' ? acc.credits + t.amount : acc.credits,
+      debits: t.type === 'debit' ? acc.debits + t.amount : acc.debits,
+    }),
+    { balance: 0, credits: 0, debits: 0 }
+  );
+}
+```
+

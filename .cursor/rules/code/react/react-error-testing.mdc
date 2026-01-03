@@ -1,0 +1,39 @@
+---
+applyTo: '**/*.ts, **/*.tsx'
+description: Guidelines for error handling patterns and practices in React TypeScript applications.
+---
+
+# React Error Handling
+
+## Error Handling Patterns
+
+- **Handle errors with previewable returns (`{ data, error }`) in hooks and async functions.**
+- **Show error states in UI when needed.**
+- **Throw/catch only at boundaries (e.g., API handlers, error boundaries).**
+
+  ```tsx
+  // In a custom hook
+  function useFetchData(): { data?: Data; error?: Error } {
+    // ...
+    return { data, error };
+  }
+
+  // In a component
+  const { data, error } = useFetchData();
+  if (error) return <ErrorMessage error={error} />;
+  ```
+
+## Error Boundaries
+
+- **Use error boundaries for component tree error handling.**
+- **Show fallback UI for component errors.**
+- **Log errors for monitoring and debugging.**
+
+## Error Handling Best Practices
+
+- **Never swallow errors silently.**
+- **Provide meaningful error messages to users.**
+- **Log errors for debugging and monitoring.**
+- **Gracefully degrade functionality when possible.**
+- **Use loading and error states consistently.**
+

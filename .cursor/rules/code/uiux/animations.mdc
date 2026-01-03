@@ -1,0 +1,416 @@
+---
+applyTo: '**/*.ts, **/*.tsx, **/*.css'
+description: Animation guidelines - subtle, snappy, and purpose-driven animations.
+---
+
+# Animation Guidelines
+
+## Core Principles
+
+All animations should follow these principles:
+
+- **Intention first**: Each animation communicates a specific state change or hierarchy cue
+- **Playful restraint**: Small bounces and subtle overshoot (2%, not 5%) add warmth without novelty-wear
+- **Snappy pace**: Most UI feedback lands between 120-240ms so interactions feel instant
+- **Tech-positive polish**: Transitions should feel like upgraded performance, not decorative flair
+- **Consistency**: One easing curve adapts across sizes; extend duration rather than change timing
+
+## Timing Standards
+
+### Duration Guidelines
+- **UI Feedback**: 120-240ms (snappy pace)
+- **Micro-interactions**: 150-200ms
+- **Transitions**: 200-240ms (maximum)
+- **Page transitions**: 240-300ms (avoid longer)
+- **Never exceed**: 300ms for user-triggered actions
+
+### Implementation
+```typescript
+// ✅ GOOD: Proper timing
+transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }} // 200ms
+
+// ❌ BAD: Too slow
+transition={{ duration: 0.6 }} // 600ms - too slow for UI feedback
+```
+
+## Easing Curves
+
+### Standard Curve (Always Use)
+- **Default**: `cubic-bezier(0.4, 0, 0.2, 1)` ✅ **Standard easing curve**
+- **Motion/React**: `ease: [0.4, 0, 0.2, 1]`
+- **CSS**: `cubic-bezier(0.4, 0, 0.2, 1)`
+
+### Consistency Rule
+- Use the same curve across ALL transitions
+- One curve adapts across sizes
+- Extend duration rather than change timing curve
+
+### Implementation
+```typescript
+// ✅ GOOD: Standard easing curve
+transition={{ type: 'tween', duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+
+// ❌ BAD: Custom or default spring
+transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+```
+
+## Scale & Transform Limits
+
+### Scale Restrictions (Playful Restraint)
+- **Hover scale**: Maximum `1.02` (2%) - not `1.05` (5%)
+- **Tap/press scale**: Maximum `0.98` (2% shrink) - not `0.95` (5%)
+- **Ripple scale**: Maximum `6x` - not `10x`
+
+### Transform Preferences
+- **Hover lift**: Prefer `translateY(-2px)` over scale (more subtle)
+- **Button interactions**: Use subtle scale (2%) or shadow changes
+
+### Implementation
+```typescript
+// ✅ GOOD: Playful restraint
+whileHover={{ scale: 1.02 }}
+whileTap={{ scale: 0.98 }}
+
+// ❌ BAD: Too dramatic
+whileHover={{ scale: 1.05 }} // 5% is too noticeable
+```
+
+## Tailwind 4 Native Animations
+
+### Available Animations
+The project uses Tailwind 4's native animation system defined in `@theme`:
+
+- **`animate-stagger-fade`**: Staggered fade-in with 4px translateY for grid items
+- **`animate-fade-in`**: Simple opacity fade for headings and static content
+
+### Stagger Fade (Grid Items)
+Use for lists, grids, or any collection of items that should appear sequentially:
+
+```tsx
+// ✅ GOOD: Tailwind 4 native stagger animation
+{items.map((item, index) => (
+  <div
+    key={item.id}
+    className="animate-stagger-fade"
+    style={{ "--stagger-index": index } as React.CSSProperties}
+  >
+    <Card item={item} />
+  </div>
+))}
+```
+
+**Properties**:
+- Duration: 200ms
+- Easing: `cubic-bezier(0.4, 0, 0.2, 1)` (standard curve)
+- Transform: 4px translateY (subtle, not 20px)
+- Stagger: 30ms per item
+
+### Simple Fade In
+Use for headings, titles, or static content:
+
+```tsx
+// ✅ GOOD: Tailwind 4 native fade animation
+<h2 className="animate-fade-in">Title</h2>
+```
+
+### Static Content (No Animation)
+Most headings and containers should render immediately:
+
+```tsx
+// ✅ GOOD: No animation for static content
+<h2>Shop by Collection</h2>
+<div className="overflow-x-auto">
+  {collections.map(...)}
+</div>
+
+// ❌ BAD: Unnecessary animation on static content
+<MotionEffect fade slide inView>
+  <h2>Shop by Collection</h2>
+</MotionEffect>
+```
+
+## MotionEffect Component (Legacy - Avoid)
+
+### When to Use
+Only use `MotionEffect` for complex scroll-triggered animations that can't be achieved with Tailwind. For most cases, prefer Tailwind 4 native animations.
+
+### Default Settings (if needed)
+- **Transition**: Use standard easing curve (not spring)
+- **Duration**: 200ms
+- **Slide offset**: 20px (not 100px)
+- **Reduced motion**: Always respect `prefers-reduced-motion`
+
+### Implementation
+```typescript
+// ✅ GOOD: Properly configured MotionEffect (only when Tailwind can't handle it)
+<MotionEffect fade slide={{ direction: "up", offset: 20 }} inView>
+  {content}
+</MotionEffect>
+
+// ❌ BAD: Heavy-handed animation
+<MotionEffect 
+  fade 
+  slide={{ direction: "up", offset: 100 }} 
+  transition={{ type: 'spring', stiffness: 200 }}
+  inView
+>
+```
+
+## Button Animations
+
+### RippleButton Standards
+- **Ripple scale**: `6` (not `10`)
+- **Ripple duration**: `240ms` (not `600ms`)
+- **Hover scale**: `1.02` (2% - not `1.05`)
+- **Tap scale**: `0.98` (2% - not `0.95`)
+- **Easing**: Standard curve
+
+### Regular Button
+- Use CSS transitions (`transition-colors`)
+- Keep it minimal and subtle
+
+### Implementation
+```typescript
+// ✅ GOOD: Properly configured RippleButton
+<RippleButton 
+  hoverScale={1.02} 
+  tapScale={0.98}
+>
+  <RippleButtonRipples scale={6} />
+</RippleButton>
+```
+
+## Card Hover Effects
+
+### Standard Pattern
+```css
+/* Subtle hover effect */
+.card-hover {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-2px); /* Preferred over scale */
+  box-shadow: var(--shadow-soft);
+}
+```
+
+### Scale Alternative (if needed)
+- Maximum `scale-[1.02]` (2%)
+- Never use `scale-105` (5%)
+
+## Background Animations
+
+### StarsBackground (if used)
+- **Speed**: 150ms minimum (not 50ms)
+- **Parallax factor**: `0.02` (not `0.05`)
+- **Reduced motion**: Always supported
+
+### General Background Rules
+- Should feel premium but not distract from content
+- Consider static patterns for subtle texture
+
+## Reduced Motion Support
+
+### Always Implement
+Every animated component MUST respect `prefers-reduced-motion`:
+
+```typescript
+// ✅ REQUIRED: Check for reduced motion
+const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+
+React.useEffect(() => {
+  const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  setPrefersReducedMotion(mediaQuery.matches);
+  
+  const handleChange = (e: MediaQueryListEvent) => {
+    setPrefersReducedMotion(e.matches);
+  };
+  
+  mediaQuery.addEventListener('change', handleChange);
+  return () => mediaQuery.removeEventListener('change', handleChange);
+}, []);
+
+// Disable animations if preferred
+const effectiveTransition = prefersReducedMotion
+  ? { duration: 0 }
+  : { duration: 0.2, ease: [0.4, 0, 0.2, 1] };
+```
+
+## CSS Transitions
+
+### Standard Button Pattern
+```tsx
+// ✅ GOOD: Minimal, subtle Tailwind classes
+<button className="transition-colors duration-200 hover:bg-accent">
+  Button
+</button>
+
+// ❌ BAD: Too many properties or long duration
+<button className="transition-all duration-500">
+```
+
+### Tailwind 4 Animation Utilities
+All animations are defined in `@theme` block in `src/shared/styles/index.css`:
+
+```css
+@theme {
+  --animate-stagger-fade: stagger-fade-in 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  --animate-fade-in: fade-in 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+
+  @keyframes stagger-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+```
+
+These are available as standard Tailwind utilities: `animate-stagger-fade` and `animate-fade-in`.
+
+### Custom Utilities
+Use the defined `--transition-smooth` utility with standard curve:
+```css
+/* Defined in index.css */
+--transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+/* Note: Duration should be 0.2s (200ms) for optimal timing */
+```
+
+## Performance Requirements
+
+### GPU Acceleration
+- Always use `transform` and `opacity` for animations (Tailwind 4 animations follow this)
+- Avoid animating `width`, `height`, `margin`, `padding` (causes layout shifts)
+- Tailwind 4 animations use GPU-accelerated properties by default
+
+### Frame Rate
+- Target: 60fps
+- Use CSS transforms over layout changes
+- Prefer `transform: translateY()` over `margin-top`
+- Tailwind 4 native animations are optimized for performance
+
+## Animation Checklist
+
+Before adding or modifying any animation, verify:
+- [ ] Duration is ≤ 240ms for UI feedback (≤ 300ms max)
+- [ ] Scale changes are ≤ 2% (not 5%)
+- [ ] Uses standard easing curve: `cubic-bezier(0.4, 0, 0.2, 1)`
+- [ ] Reduced motion is respected (`prefers-reduced-motion: reduce`)
+- [ ] Animation serves a purpose (feedback, hierarchy, delight)
+- [ ] Performance is acceptable (60fps, GPU-accelerated)
+- [ ] Consistent with existing patterns
+
+## Common Mistakes to Avoid
+
+### ❌ Too Slow
+```typescript
+// 600ms - exceeds 240ms max
+transition={{ duration: 0.6 }}
+```
+
+### ❌ Too Bouncy
+```typescript
+// Spring with low damping - too bouncy
+transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+```
+
+### ❌ Too Dramatic
+```typescript
+// 5% scale - exceeds 2% playful restraint limit
+whileHover={{ scale: 1.05 }}
+```
+
+### ❌ Large Offsets
+```typescript
+// 100px offset - too dramatic
+slide={{ direction: "up", offset: 100 }}
+
+// ✅ GOOD: Use Tailwind's subtle 4px stagger
+<div className="animate-stagger-fade" style={{ "--stagger-index": index }}>
+```
+
+### ❌ Missing Reduced Motion
+```typescript
+// No accessibility check
+<MotionEffect fade slide inView>
+
+// ✅ GOOD: Tailwind 4 animations respect prefers-reduced-motion via CSS
+```
+
+### ❌ Using MotionEffect When Tailwind Would Work
+```tsx
+// ❌ BAD: Using MotionEffect for simple grid
+<MotionEffect fade slide inView>
+  <div className="grid">
+    {items.map(...)}
+  </div>
+</MotionEffect>
+
+// ✅ GOOD: Use Tailwind 4 native stagger
+{items.map((item, index) => (
+  <div className="animate-stagger-fade" style={{ "--stagger-index": index }}>
+    <Card item={item} />
+  </div>
+))}
+```
+
+## Quick Reference
+
+### Tailwind 4 Animation Utilities
+```tsx
+// Stagger fade for grids/lists
+<div className="animate-stagger-fade" style={{ "--stagger-index": index }}>
+  <Card />
+</div>
+
+// Simple fade for headings
+<h2 className="animate-fade-in">Title</h2>
+
+// Static content (no animation)
+<h2>Title</h2>
+```
+
+### Animation Properties
+```typescript
+// Stagger fade: 200ms, 4px translateY, 30ms stagger
+// Fade in: 200ms, opacity only
+// Easing: cubic-bezier(0.4, 0, 0.2, 1) (standard curve)
+```
+
+### MotionEffect Defaults (Legacy)
+```typescript
+// Slide offset: 20px (not 100px)
+// Transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] }
+// Always check prefers-reduced-motion
+```
+
+### RippleButton Defaults
+```typescript
+// Ripple scale: 6
+// Ripple duration: 240ms
+// Hover scale: 1.02
+// Tap scale: 0.98
+```
+
+### Standard Easing
+```typescript
+// Motion/React: ease: [0.4, 0, 0.2, 1]
+// CSS: cubic-bezier(0.4, 0, 0.2, 1)
+// Tailwind 4: Defined in @theme block
+```
+
+## Resources
+
+- Review: `ANIMATION_REVIEW.md` for detailed analysis
+- Tailwind 4 animations: Defined in `src/shared/styles/index.css` `@theme` block
+- Implementation examples:
+  - `src/client/shop/useCases/viewShop/ShopPage.tsx` - Product grid stagger
+  - `src/client/auth/useCases/viewHome/HomePage.tsx` - Action cards stagger
+  - `src/shared/components/ui/motion-effect.tsx` - Legacy component (avoid when possible)
+  - `src/shared/components/animate-ui/primitives/buttons/ripple.tsx`
+  - `src/components/animate-ui/components/backgrounds/stars.tsx`

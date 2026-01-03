@@ -1,0 +1,13 @@
+---
+applyTo: '**/*.ts, **/*.tsx'
+description: Core principles for React + TypeScript codebases used across all components and hooks.
+---
+
+# React Principles
+
+- Functional-first: use function components and hooks, not classes.
+- Immutability: treat state and props as immutable.
+- Explicitness: use clear, descriptive names and explicit types for public APIs.
+- Self-explanatory code: code should communicate intent; avoid comments.
+- Simplicity: apply SOLID, YAGNI, and KISS.
+

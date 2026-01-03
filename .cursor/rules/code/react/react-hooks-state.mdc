@@ -1,0 +1,144 @@
+---
+applyTo: '**/*.tsx'
+description: Guidelines for React hooks usage, custom hooks design, and state management patterns.
+---
+
+# React Hooks & State Management
+
+## Hooks Usage Principles
+
+- **Hooks are the encouraged way to gather and encapsulate component logic.**
+  Prefer custom hooks (`use*`) for state, effects, data fetching, and reusable logic instead of mixing logic directly into components.
+
+- **All returned values and functions from hooks must be memoized with `useMemo` and `useCallback`.**
+  This prevents unnecessary re-renders and ensures that consuming components or hooks receive stable references.
+  Always memoize any function or object returned by a hook—do not return new objects or functions directly from the hook body.
+
+  ```tsx
+  // Good: All returned values are memoized
+  function useFilteredUsers(users: User[], search: string) {
+    const filtered = React.useMemo(
+      () => users.filter((user) => user.name.includes(search)),
+      [users, search]
+    );
+
+    const selectUser = React.useCallback(
+      (id: string) => filtered.find((user) => user.id === id),
+      [filtered]
+    );
+
+    return { filtered, selectUser };
+  }
+
+  // Bad: Returning new array/function each render
+  function useBadExample(users: User[]) {
+    return {
+      filtered: users.filter((user) => user.active),
+      select: (id: string) => users.find((u) => u.id === id),
+    };
+  }
+  ```
+
+## Custom Hooks Design
+
+- **Custom hooks must start with `use`.**
+- **Do not use hooks inside conditions or loops.**
+- **Type all return values and parameters.**
+- **Compose hooks to build complex logic.**
+
+## Component-Level State Management
+
+- **Always use `useMemo` and `useCallback` as required to prevent unnecessary re-renders.**
+  Memoize expensive calculations and stable function references for props and dependencies.
+
+  ```tsx
+  function ProductList({ products, onSelect }: ProductListProps) {
+    const sortedProducts = React.useMemo(
+      () => [...products].sort((a, b) => a.name.localeCompare(b.name)),
+      [products]
+    );
+
+    const handleSelect = React.useCallback(
+      (id: string) => onSelect(id),
+      [onSelect]
+    );
+
+    return (
+      <ul>
+        {sortedProducts.map((product) => (
+          <li key={product.id} onClick={() => handleSelect(product.id)}>
+            {product.name}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  ```
+
+## Global State Management
+
+- **For complex or shared state, always prefer a custom store using the selector pattern with `useSyncExternalStore`.**
+  This approach is more scalable, testable, and performant than using plain `useState` or `useReducer` for deeply nested, cross-component, or business-critical state.
+
+- **Compose selectors and actions in the store. Never expose internal state shape directly.**
+- **Always memoize selectors and returned values with `useMemo` and actions with `useCallback` to prevent unnecessary re-renders.**
+- **Use the slice pattern to expose only the necessary piece of state and its updater as hooks.**
+
+  ```tsx
+  import { useSyncExternalStore, useCallback } from 'react';
+
+  // Store logic (outside React)
+  type StoreState = { count: number };
+  let storeState: StoreState = { count: 0 };
+  const listeners = new Set<() => void>();
+
+  function setStoreState(updater: (prev: StoreState) => StoreState) {
+    storeState = updater(storeState);
+    listeners.forEach((listener) => listener());
+  }
+
+  function subscribe(listener: () => void) {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }
+
+  function getSnapshot() {
+    return storeState;
+  }
+
+  // Selector Hook for reading value (slice pattern)
+  function useCountValue() {
+    return useSyncExternalStore(subscribe, () => getSnapshot().count);
+  }
+
+  // Hook for updating value (slice pattern)
+  function useSetCountValue() {
+    // Memoize updater to avoid unnecessary re-renders
+    return useCallback(
+      (newCount: number) =>
+        setStoreState((prev) => ({ ...prev, count: newCount })),
+      []
+    );
+  }
+
+  // Example usage in a component
+  function Counter() {
+    const count = useCountValue();
+    const setCount = useSetCountValue();
+
+    const increment = useCallback(() => setCount(count + 1), [setCount, count]);
+
+    return (
+      <div>
+        <span>{count}</span>
+        <button onClick={increment}>+</button>
+      </div>
+    );
+  }
+  ```
+
+## State Management Guidelines
+
+- **Do not use Redux, Context, or third-party global state unless justified by complex business needs and discussed with the team.**
+- **Avoid useState/useReducer for complex or cross-component state.**
+

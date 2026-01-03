@@ -1,0 +1,173 @@
+---
+applyTo: '**/*.ts'
+description: TypeScript error handling patterns and testing practices with TDD/BDD approach.
+---
+
+# TypeScript Error Handling & Testing
+
+## Error Handling Patterns
+
+- **Return `{ data, error }`.**
+  Only throw/catch at boundaries (e.g., API handlers).
+
+  ```tsx
+  function getUser(id: string): { data?: User; error?: Error } {
+    if (!id) return { error: new Error('Missing id') };
+    // ...fetch
+    return { data: { id, name: 'Alice', status: Status.ACTIVE } };
+  }
+
+  // Usage
+  const { data, error } = getUser('abc');
+  if (error) return handleError(error);
+  ```
+
+- **Try/catch only at edge boundaries.**
+
+  ```tsx
+  // Try/catch only at edge
+  async function handler(req: Request, res: Response) {
+    try {
+      await doWork();
+      res.sendStatus(200);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  ```
+
+- **Never swallow errors.** Always propagate or handle.
+
+## Testing Principles
+
+- **TDD/BDD:** Write tests first.
+- Use `describe`, `it`, and `expect`.
+- Test for edge cases and error handling.
+- Use mocks for external dependencies.
+  ```tsx
+  describe('summarize', () => {
+    it('computes account summary correctly', () => {
+      const txs = [
+        { amount: 100, type: 'credit' },
+        { amount: 30, type: 'debit' },
+      ];
+      expect(summarize(txs)).toEqual({ balance: 70, credits: 100, debits: 30 });
+    });
+  });
+  ```
+
+## Function Testing
+
+- **Test pure functions in isolation.**
+- **Test return values and side effects.**
+- **Mock external dependencies.**
+
+  ```tsx
+  describe('normalizeEmail', () => {
+    it('converts email to lowercase and trims whitespace', () => {
+      const result = normalizeEmail('  USER@EXAMPLE.COM  ');
+      expect(result).toBe('user@example.com');
+    });
+
+    it('handles empty strings', () => {
+      const result = normalizeEmail('');
+      expect(result).toBe('');
+    });
+  });
+  ```
+
+## Error Handling Testing
+
+- **Test error conditions explicitly.**
+- **Test error message content and types.**
+- **Test error propagation patterns.**
+
+  ```tsx
+  describe('registerUser', () => {
+    it('returns error for invalid email', async () => {
+      const result = await registerUser({
+        email: 'invalid-email',
+        password: 'password123',
+      });
+
+      expect(result.error).toBeDefined();
+      expect(result.error?.message).toBe('Invalid email');
+      expect(result.data).toBeUndefined();
+    });
+
+    it('returns user data for valid input', async () => {
+      const result = await registerUser({
+        email: 'user@example.com',
+        password: 'password123',
+      });
+
+      expect(result.error).toBeUndefined();
+      expect(result.data).toBeDefined();
+      expect(result.data?.email).toBe('user@example.com');
+    });
+  });
+  ```
+
+## Async Function Testing
+
+- **Test Promise resolution and rejection.**
+- **Use async/await in tests.**
+- **Mock async dependencies.**
+
+  ```tsx
+  describe('fetchUserData', () => {
+    it('returns user data on successful fetch', async () => {
+      // Mock the API call
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ id: '1', name: 'John' }),
+      });
+      global.fetch = mockFetch;
+
+      const result = await fetchUserData('1');
+
+      expect(result.data).toEqual({ id: '1', name: 'John' });
+      expect(result.error).toBeUndefined();
+    });
+
+    it('returns error on fetch failure', async () => {
+      const mockFetch = jest.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = mockFetch;
+
+      const result = await fetchUserData('1');
+
+      expect(result.data).toBeUndefined();
+      expect(result.error?.message).toBe('Network error');
+    });
+  });
+  ```
+
+## Type Guard Testing
+
+- **Test type guards with various inputs.**
+- **Test both positive and negative cases.**
+
+  ```tsx
+  describe('isUser', () => {
+    it('returns true for valid user object', () => {
+      const validUser = { id: '1', name: 'John', email: 'john@example.com' };
+      expect(isUser(validUser)).toBe(true);
+    });
+
+    it('returns false for invalid objects', () => {
+      expect(isUser(null)).toBe(false);
+      expect(isUser({})).toBe(false);
+      expect(isUser({ id: '1' })).toBe(false); // missing name
+      expect(isUser('string')).toBe(false);
+    });
+  });
+  ```
+
+## Best Practices
+
+- **Test behavior, not implementation.**
+- **Write descriptive test names.**
+- **Keep tests simple and focused.**
+- **Use setup and teardown appropriately.**
+- **Test edge cases and boundary conditions.**
+

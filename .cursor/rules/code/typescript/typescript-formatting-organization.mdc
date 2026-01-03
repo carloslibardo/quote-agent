@@ -1,0 +1,162 @@
+---
+applyTo: '**/*.ts'
+description: TypeScript formatting conventions, import/export patterns, and code organization best practices.
+---
+
+# TypeScript Formatting & Organization
+
+## Formatting Conventions
+
+- **2-space indentation.**
+- **camelCase for variables/functions, PascalCase for types/interfaces, UPPER_CASE for constants.**
+- **No semicolons (unless required).**
+- **Single quotes for strings.**
+  ```tsx
+  const apiEndpoint = '/api/user';
+  type HttpResponse = { status: number };
+  const MAX_RETRIES = 3;
+  ```
+
+## Naming Conventions
+
+- **Use descriptive, non-abbreviated names unless common acronyms.**
+- **Avoid generic names like `data`, `info`, `temp`.**
+- **Use verb-noun patterns for functions.**
+
+  ```tsx
+  // Good
+  function calculateTotalPrice(items: CartItem[]): number { ... }
+  function validateEmailAddress(email: string): boolean { ... }
+
+  // Bad
+  function calc(items: any): any { ... }
+  function validate(data: string): boolean { ... }
+  ```
+
+## Import & Export Patterns
+
+- **No barrel files.**
+  Import directly from the file of origin.
+
+  ```tsx
+  // Bad
+  import { add } from '@/utils';
+
+  // Good
+  import { add } from '@/utils/add';
+  ```
+
+- **Use relative paths or path aliases (`@/`), never deep absolute.**
+
+  ```tsx
+  import { fetcher } from '../../utils/fetcher';
+  import { fetcher } from '@/utils/fetcher';
+  ```
+
+- **Use ES6 modules. Prefer named exports.**
+
+  ```tsx
+  // Good: Named exports
+  export function calculateTax(amount: number): number { ... }
+  export interface TaxConfig { rate: number; }
+
+  // Avoid: Default exports (except for components)
+  export default function calculator() { ... }
+  ```
+
+## File Organization
+
+- **One main export per file.**
+- **Group related types and functions.**
+- **Use consistent file naming conventions.**
+  ```
+  // File structure example
+  src/
+    utils/
+      calculation.ts      // calculateTax, calculateTotal
+      validation.ts       // validateEmail, validatePhone
+      formatting.ts       // formatCurrency, formatDate
+    types/
+      user.ts            // User interface, UserStatus type
+      api.ts             // ApiResponse, ApiError types
+  ```
+
+## Class & Interface Guidelines
+
+- **Prefer interfaces and pure functions. Avoid classes.**
+- Use classes only for framework or interop needs.
+
+  ```tsx
+  // Good: Interface with functions
+  interface AuthService {
+    login(
+      email: string,
+      password: string
+    ): Promise<{ data?: User; error?: Error }>;
+    logout(): void;
+  }
+
+  // Avoid: Classes for logic
+  // Only use if required by framework
+  ```
+
+- **Prefer composition over inheritance.**
+
+## Code Organization Principles
+
+- **Group related functionality together.**
+- **Separate concerns into different files.**
+- **Use consistent directory structure.**
+- **Keep files focused and cohesive.**
+
+## Documentation Guidelines
+
+- **No inline comments or JSDoc.**
+  Code must be clear and self-explanatory.
+- **Use markdown for high-level docs, not code explanations.**
+- **Write descriptive function and variable names instead of comments.**
+
+  ```tsx
+  // Bad: Needs comment to explain
+  function calc(a: number, b: number): number {
+    // Calculate tax including base rate
+    return a * 0.08 + b;
+  }
+
+  // Good: Self-explanatory
+  function calculateTotalTax(taxableAmount: number, baseFee: number): number {
+    const TAX_RATE = 0.08;
+    return taxableAmount * TAX_RATE + baseFee;
+  }
+  ```
+
+## Miscellaneous Best Practices
+
+- **Use async/await over callbacks.**
+- **Avoid magic numbers/strings; use constants.**
+- **Enforce style with ESLint/Prettier.**
+- **Use consistent error handling patterns.**
+- **Keep functions small and focused.**
+
+## TypeScript Configuration
+
+- **Use strict TypeScript configuration.**
+- **Enable all strict checks.**
+- **Use path mapping for cleaner imports.**
+  ```json
+  // tsconfig.json
+  {
+    "compilerOptions": {
+      "strict": true,
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["src/*"]
+      }
+    }
+  }
+  ```
+

@@ -1,0 +1,337 @@
+---
+applyTo: '**/*.ts, **/*.tsx, **/*.css'
+description: General UI/UX patterns, spacing, typography, components, and accessibility guidelines.
+---
+
+# UI/UX Patterns & Guidelines
+
+General UI/UX patterns and best practices for building consistent, accessible user interfaces.
+
+## Component Patterns
+
+### Cards
+
+#### Standard Card
+```tsx
+<div className="bg-card border border-border rounded-[20px] p-6">
+  {/* Content */}
+</div>
+```
+
+#### Card with Shadow
+```tsx
+<div className="bg-card border border-border rounded-[20px] p-6 shadow-soft">
+  {/* Content */}
+</div>
+```
+
+#### Card with Hover
+```tsx
+<div className="bg-card border border-border rounded-[20px] p-6 hover:shadow-soft transition-shadow">
+  {/* Content */}
+</div>
+```
+
+### Icon Badges
+
+Standard pattern for icon containers:
+```tsx
+<div className="icon-badge p-4 rounded-[16px]">
+  <Icon className="h-6 w-6 text-primary-foreground" />
+</div>
+```
+
+Variations:
+- `p-3` for smaller badges
+- `p-4` for standard (most common)
+- `p-6` for larger badges
+
+### Button Variants
+
+- **Default**: Primary color, solid
+- **Outline**: Border, transparent background
+- **Ghost**: No border, transparent background
+- **Locked**: Disabled state styling
+- **Destructive**: Red/destructive color for delete actions
+
+### Form Patterns
+
+#### Input Field
+```tsx
+<div className="space-y-2">
+  <Label htmlFor="field">Label</Label>
+  <Input
+    id="field"
+    className="bg-background border-border rounded-[12px]"
+    placeholder="Placeholder"
+  />
+</div>
+```
+
+#### Textarea
+```tsx
+<Textarea
+  className="min-h-[100px] bg-background border-border resize-none"
+  placeholder="Placeholder"
+/>
+```
+
+### Empty States
+
+Consistent pattern across pages:
+```tsx
+<EmptyState
+  icon={Icon}
+  title="Title"
+  description="Description"
+  actionLabel="Action" // optional
+  onAction={handler} // optional
+/>
+```
+
+Styling: Card with centered content, icon badge, title, description, optional action button.
+
+### Loading States
+
+#### Skeleton Cards
+```tsx
+<div className="space-y-4">
+  {[1, 2, 3].map((i) => (
+    <div key={i} className="bg-card border border-border rounded-[20px] p-6">
+      <Skeleton className="h-32 w-full rounded-[16px]" />
+    </div>
+  ))}
+</div>
+```
+
+#### Grid Skeletons
+```tsx
+<div className="grid grid-cols-2 gap-4">
+  {[1, 2, 3, 4].map((i) => (
+    <div key={i} className="space-y-3">
+      <Skeleton className="h-[172.5px] w-full rounded-lg" />
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-4 w-20" />
+    </div>
+  ))}
+</div>
+```
+
+## Spacing System
+
+### Container Spacing
+
+- **Standard Pages**: `p-6 space-y-6`
+- **Reduced Padding Pages**: `p-4 space-y-6` (for content-dense pages)
+- **Hero Pages**: `px-4 pt-6 pb-6` (for full-width hero sections)
+
+### Max Widths
+
+- **Standard Content**: `max-w-2xl` (most pages, forms)
+- **Wide Content**: `max-w-4xl` (detail pages, galleries)
+- **Full Width**: `max-w-7xl` (admin dashboards, data tables)
+
+### Card Spacing
+
+- **Card Padding**: `p-6` (standard)
+- **Card Content**: `space-y-4` (internal spacing)
+- **Section Spacing**: `space-y-6` (between major sections)
+
+### Grid Spacing
+
+- **Standard Grid**: `gap-4` (2 columns)
+- **Responsive Grid**: `gap-4` (2→3→4 columns responsive)
+- **Horizontal Scroll**: `gap-4` with `px-2` or `px-4` container padding
+
+### Button Spacing
+
+- **Button Groups**: `gap-3` or `flex-1` for side-by-side
+- **Icon + Text**: `mr-2` for icon margin
+- **Full Width**: `w-full` with `rounded-[12px]` or `rounded-full`
+
+## Typography
+
+### Headings
+
+- **Page Title (Large)**: `text-5xl font-bold` (main page titles)
+- **Page Title (Smaller)**: `text-4xl font-bold` (secondary pages)
+- **Section Heading**: `text-2xl font-bold` (major sections)
+- **Subsection Heading**: `text-lg font-semibold` (subsections)
+- **Card Title**: `text-xl font-bold` (action cards, item cards)
+
+### Body Text
+
+- **Large Description**: `text-lg text-muted-foreground` (page descriptions)
+- **Standard**: `text-sm` or `text-base` (descriptions, content)
+- **Muted**: `text-muted-foreground` (secondary text)
+- **Small**: `text-xs` (badges, metadata)
+
+### Leading/Tracking
+
+- **Tight**: `leading-tight` (headings)
+- **Relaxed**: `leading-relaxed` (body paragraphs)
+- **Normal**: Default (most text)
+
+### Font Weights
+
+- **Bold**: `font-bold` (headings, titles)
+- **Semibold**: `font-semibold` (subsection headings)
+- **Medium**: `font-medium` (labels, emphasis)
+- **Normal**: Default (body text)
+
+## Colors & Theming
+
+### Color Tokens
+
+- **Primary**: Main brand color (buttons, active states, icons)
+- **Foreground**: Primary text color
+- **Muted Foreground**: Secondary text (`text-muted-foreground`)
+- **Background**: Page background
+- **Card**: Card background (`bg-card`)
+- **Border**: Border color (`border-border`)
+- **Destructive**: Error/destructive actions
+
+### Shadow System
+
+- **Shadow Soft**: `shadow-soft` utility (cards, hover states)
+- **Shadow Gold**: `shadow-gold` utility (special emphasis, if available)
+- **Default**: Tailwind shadows for elevated elements
+
+## Common Layout Patterns
+
+### Horizontal Scroll Sections
+
+Pattern for scrollable horizontal lists:
+```tsx
+<div className="overflow-x-auto -mx-4 px-4 pb-2">
+  <div className="flex gap-4 min-w-max">
+    {/* Cards */}
+  </div>
+</div>
+```
+
+Uses negative margin (`-mx-4`) to extend to edges, then positive padding (`px-4`) to maintain internal spacing.
+
+### Fixed Bottom Actions
+
+Pattern for sticky bottom buttons:
+```tsx
+<div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-10">
+  <div className="max-w-2xl mx-auto w-full">
+    <Button className="w-full">Action</Button>
+  </div>
+</div>
+```
+
+Content padding: `pb-24` to prevent overlap with fixed bottom element.
+
+### Hero Banner Overlay
+
+Standard pattern for hero sections:
+```tsx
+<div className="relative">
+  <AspectRatio ratio={16 / 9}>
+    <img src={url} className="absolute inset-0 w-full h-full object-cover" />
+    <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+  </AspectRatio>
+  <div className="absolute bottom-0 left-0 right-0 px-4 pb-6">
+    {/* Overlay content */}
+  </div>
+</div>
+```
+
+## Responsive Breakpoints
+
+- **sm**: 640px+ (grid: 3 columns, increased spacing)
+- **md**: 768px+ (grid: 4 columns, larger text sizes)
+- **lg**: 1024px+ (future breakpoint usage)
+- **xl**: 1280px+ (future breakpoint usage)
+
+## Accessibility
+
+### ARIA Labels
+
+- All interactive elements have `aria-label` or `ariaLabel` props
+- Buttons have descriptive labels
+- Navigation items have labels
+- Form inputs are properly labeled with `htmlFor` associations
+
+### Focus States
+
+Standard focus visible pattern:
+```tsx
+className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+```
+
+Used on interactive cards and buttons for keyboard navigation visibility.
+
+### Reduced Motion Support
+
+**Always implement**: Every animated component MUST respect `prefers-reduced-motion`.
+
+#### Tailwind Animations
+Tailwind animations automatically respect `prefers-reduced-motion` via CSS media queries when properly configured.
+
+#### Custom Animations
+For custom animations not using Tailwind utilities, always check for reduced motion preference:
+
+```tsx
+const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+
+React.useEffect(() => {
+  const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  setPrefersReducedMotion(mediaQuery.matches);
+  
+  const handleChange = (e: MediaQueryListEvent) => {
+    setPrefersReducedMotion(e.matches);
+  };
+  
+  mediaQuery.addEventListener('change', handleChange);
+  return () => mediaQuery.removeEventListener('change', handleChange);
+}, []);
+
+// Disable animations if preferred
+const effectiveTransition = prefersReducedMotion
+  ? { duration: 0 }
+  : { duration: 0.2, ease: [0.4, 0, 0.2, 1] };
+```
+
+#### Static Content
+Most headings and static content should render immediately without animation. Reserve animations for:
+- User-triggered interactions (button clicks, hover states)
+- List/grid items appearing (stagger fade)
+- State transitions that provide feedback
+
+Avoid animating static page headings and static text content.
+
+### Semantic HTML
+
+- Proper heading hierarchy (h1 → h2 → h3)
+- Semantic navigation elements (`nav`, `header`, `footer`)
+- Button elements for interactive actions (not divs styled as buttons)
+- Form elements properly structured with labels
+
+## Border Radius
+
+Consistent border radius values:
+- **Standard**: `rounded-[12px]` (inputs, buttons)
+- **Medium**: `rounded-[16px]` (icon badges, small cards)
+- **Large**: `rounded-[20px]` (cards, containers)
+- **Full**: `rounded-full` (circular elements, pills)
+
+## Icon Sizes
+
+Consistent icon size patterns:
+- **Small**: `h-4 w-4` (inline text icons, badges)
+- **Medium**: `h-5 w-5` (default buttons, navigation)
+- **Large**: `h-6 w-6` (card icons, hero icons)
+- **XLarge**: `h-8 w-8` (feature icons, section headers)
+
+## Animation Guidelines
+
+See `.cursor/rules/code/uiux/animations.mdc` for comprehensive animation guidelines including:
+- Timing standards (120-240ms for UI feedback)
+- Standard easing curve (`cubic-bezier(0.4, 0, 0.2, 1)`)
+- Scale limits (2% max for hover/tap)
+- Reduced motion support
+- Performance requirements

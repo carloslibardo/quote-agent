@@ -1,0 +1,127 @@
+---
+description: React hooks guidelines - only functions that call hooks are hooks
+applyTo: '**/*.tsx, **/*.ts'
+---
+
+# React Hooks Guidelines
+
+## What are React Hooks?
+
+React hooks are **functions that call other hooks** (useState, useEffect, useContext, etc.). They must:
+
+- Start with "use" prefix
+- Be called at the top level of React components or other hooks
+- Follow the Rules of Hooks
+
+## Only Functions That Call Hooks Are Hooks
+
+### ✅ Correct - These are hooks
+
+```typescript
+// Hook: calls useState and useEffect
+const useUserProfile = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // fetch user data
+  }, []);
+
+  return { user, loading, setUser };
+};
+
+// Hook: calls useState
+const useCounter = () => {
+  const [count, setCount] = useState(0);
+  return { count, setCount };
+};
+```
+
+### ❌ Incorrect - These are NOT hooks
+
+```typescript
+// Pure function - no hooks called
+const useFormatDate = (date: string): string => {
+  return dayjs(date).format('MM/DD/YYYY');
+};
+
+// Pure function - no hooks called
+const useCalculateAge = (birthDate: string): number => {
+  return dayjs().diff(dayjs(birthDate), 'year');
+};
+
+// Utility function - no hooks called
+const validateEmail = (email: string): boolean => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+```
+
+## Naming Convention Rules
+
+### Use "use" prefix ONLY for hooks
+
+- ✅ `useUserProfile()` - calls hooks
+- ✅ `useCounter()` - calls hooks
+- ❌ `useFormatDate()` - pure function, no hooks
+- ❌ `useCalculateAge()` - pure function, no hooks
+- ❌ `useValidateEmail()` - pure function, no hooks
+
+### Pure functions should NOT have "use" prefix
+
+- ✅ `formatDate()` - pure function
+- ✅ `calculateAge()` - pure function
+- ✅ `validateEmail()` - pure function
+- ✅ `formatCurrency()` - pure function
+- ✅ `parseDate()` - pure function
+
+## Common Patterns
+
+### Pure Utility Functions
+
+```typescript
+// ✅ Correct naming for pure functions
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+};
+
+export const validatePhoneNumber = (phone: string): boolean => {
+  return /^\+?[\d\s-()]{10,}$/.test(phone);
+};
+```
+
+### Custom Hooks
+
+```typescript
+// ✅ Correct naming for hooks
+export const useFormValidation = (initialData: FormData) => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isValid, setIsValid] = useState(false);
+
+  useEffect(() => {
+    // validation logic
+  }, [initialData]);
+
+  return { errors, isValid, validate: () => {} };
+};
+```
+
+## Quick Reference
+
+| Function Type | Naming       | Example                            |
+| ------------- | ------------ | ---------------------------------- |
+| Pure function | No "use"     | `formatDate()`, `calculateAge()`   |
+| Hook          | "use" prefix | `useUserProfile()`, `useCounter()` |
+| Component     | PascalCase   | `UserProfile()`, `Counter()`       |
+
+## Rules to Follow
+
+1. **Only functions that call hooks get "use" prefix**
+2. **Pure functions (no hooks) should NOT have "use" prefix**
+3. **Utility functions are pure functions**
+4. **Date operations are pure functions**
+5. **Validation functions are pure functions**
+6. **Formatting functions are pure functions**
+

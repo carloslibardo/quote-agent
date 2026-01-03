@@ -1,0 +1,172 @@
+#
+---
+applyTo: '**/*.tsx'
+description: Guidelines for React component design, composition patterns, and component structure best practices.
+---
+
+# React Component Design
+
+## Principles
+
+- **Named functions for component definitions are mandatory.**
+  Only use named functions for component definitions—not arrow or anonymous functions. This improves stack traces, readability, testability, and consistency.
+
+  ```tsx
+  // Good
+  function UserCard({ user }: UserCardProps) {
+    return <div>{user.name}</div>;
+  }
+
+  // Bad
+  const UserCard = ({ user }: UserCardProps) => <div>{user.name}</div>;
+  ```
+
+- **Composite components are the default pattern for building custom components.**
+  Build UIs by composing small, reusable, and focused components.
+
+  ```tsx
+  function Modal({ children, ...props }: ModalProps) {
+    return (
+      <div className="modal" {...props}>
+        {children}
+      </div>
+    );
+  }
+
+  function ModalHeader({ title }: { title: string }) {
+    return <div className="modal-header">{title}</div>;
+  }
+
+  function ModalBody({ children }: { children: React.ReactNode }) {
+    return <div className="modal-body">{children}</div>;
+  }
+
+  function Example() {
+    return (
+      <Modal>
+        <ModalHeader title="Dialog" />
+        <ModalBody>
+          <p>Content goes here</p>
+        </ModalBody>
+      </Modal>
+    );
+  }
+  ```
+
+## Component Structure
+
+- **Component files must export only one component.**
+- **Component names must be PascalCase.**
+- **Split large components into smaller, focused ones.**
+- **Use function components exclusively - no class components.**
+
+## Props & Type Definitions
+
+- **Use type or interface for props/state. Prefer `interface` for component props.**
+- **The `any` type for props and state is strictly prohibited.**
+  Always use precise, descriptive types for all props and state. This ensures type safety and maintainability.
+
+  ```tsx
+  // Good
+  interface UserCardProps {
+    user: User;
+    onSelect?: (id: string) => void;
+  }
+
+  function UserCard({ user, onSelect }: UserCardProps) {
+    // ...
+  }
+
+  // Bad
+  // Never use 'any' for props or state
+  interface BadProps {
+    user: any;
+  }
+  ```
+
+- **Do not mutate props or state directly.**
+  Use state setters to update state immutably.
+
+  ```tsx
+  // Good
+  setItems((prev) => [...prev, newItem]);
+  ```
+
+- **Destructure props in function signature if short, otherwise inside the function.**
+
+## Type System for Components
+
+- **No `any`.** Use precise types. If unsure, use `unknown` with type guards.
+- Use `interface` for props/complex objects, `type` for unions/intersections.
+- **No `enum`.** Use `as const` objects and union types.
+
+  ```tsx
+  const ButtonVariant = { PRIMARY: 'primary', SECONDARY: 'secondary' } as const;
+  type ButtonVariant = (typeof ButtonVariant)[keyof typeof ButtonVariant];
+
+  interface ButtonProps {
+    variant: ButtonVariant;
+    children: React.ReactNode;
+  }
+  ```
+
+- Use optional (`?`) and `readonly` where possible.
+
+## ClassName Prop Handling
+
+- **Always use the `cn` utility from `~/lib/utils` for className merging.**
+  Never use the `classNames` utility from `~/utils/classNames` as it only concatenates strings and doesn't resolve conflicting Tailwind classes.
+
+- **Proper className merging pattern:**
+  ```tsx
+  import { cn } from '~/lib/utils';
+  
+  interface ComponentProps {
+    className?: string;
+  }
+  
+  function Component({ className }: ComponentProps) {
+    return (
+      <div className={cn('base-classes', conditionalClasses, className)}>
+        Content
+      </div>
+    );
+  }
+  ```
+
+- **Why `cn` is required:**
+  The `cn` utility uses `clsx` + `twMerge` to properly merge conflicting Tailwind classes. Without it, conflicting classes like `w-2` and `w-4` would result in undefined styles.
+
+- **Good examples:**
+  ```tsx
+  // Base classes with conditional classes
+  <Card className={cn('mx-auto w-full max-w-md bg-background/80 backdrop-blur-sm', className)}>
+  
+  // Conditional styling
+  <Card className={cn('mx-auto w-full max-w-md bg-background/80', isDark ? 'bg-dark' : 'bg-light', className)}>
+  
+  // Object-based conditional classes
+  <div className={cn('group', {
+    'bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted': !selected,
+    'bg-primary/10 text-primary': selected,
+  })}>
+  ```
+
+- **Bad examples:**
+  ```tsx
+  // DON'T: Simple concatenation (conflicting classes won't resolve)
+  <div className={classNames('text-sm', className, 'overflow-y-auto')}>
+  
+  // DON'T: String concatenation
+  <div className={`base-classes ${className}`}>
+  
+  // DON'T: Manual concatenation
+  <div className={'base-classes ' + className}>
+  ```
+
+- **Static-only classes:** If the class list is entirely static, use a plain string instead of `cn` for clarity and performance.
+  ```tsx
+  <div className="rounded-lg border bg-muted p-4 shadow" />
+  ```
+
+

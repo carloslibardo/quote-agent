@@ -1,0 +1,10 @@
+---
+alwaysApply: true
+---
+
+# TypeScript Always
+
+YOU MUST FOLLOW THESE RULES FOR ALL TYPESCRIPT CODE:
+
+- **No `any` type usage.**
+- **No `unknown` type usage unless dealing with exception error types.**
