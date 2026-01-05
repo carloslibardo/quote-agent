@@ -8,7 +8,12 @@
  * @module
  */
 
-import type * as users from "../users.js";
+import type * as decisions from "../decisions.js";
+import type * as http from "../http.js";
+import type * as messages from "../messages.js";
+import type * as negotiations from "../negotiations.js";
+import type * as quotes from "../quotes.js";
+import type * as seed from "../seed.js";
 
 import type {
   ApiFromModules,
@@ -25,7 +30,12 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
-  users: typeof users;
+  decisions: typeof decisions;
+  http: typeof http;
+  messages: typeof messages;
+  negotiations: typeof negotiations;
+  quotes: typeof quotes;
+  seed: typeof seed;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
