@@ -17,6 +17,10 @@ interface TopBarProfile {
 
 interface PageLayoutProps {
   children: ReactNode;
+  /** Page title - can be a string or ReactNode */
+  title?: ReactNode;
+  /** Page description */
+  description?: string;
   headerVariant?: "authenticated" | "unauthenticated";
   onShare?: () => void;
   onSignOut?: () => void;
@@ -51,6 +55,8 @@ interface PageLayoutProps {
 
 export const PageLayout = ({
   children,
+  title,
+  description,
   headerVariant = "authenticated",
   onShare,
   onSignOut,
@@ -116,7 +122,20 @@ export const PageLayout = ({
             contentClassName,
           )}
         >
-          {children}
+          {/* Page header with title and description */}
+          {(title || description) && (
+            <div className="px-4 py-6 md:px-6">
+              {title && (
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {title}
+                </h1>
+              )}
+              {description && (
+                <p className="text-muted-foreground mt-1">{description}</p>
+              )}
+            </div>
+          )}
+          <div className="px-4 md:px-6 pb-6">{children}</div>
         </main>
         {footer === "bottomNav" && <BottomNav {...bottomNavProps} />}
         {footer === "bottomNavSteps" && bottomNavStepsProps && (

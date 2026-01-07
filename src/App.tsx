@@ -1,17 +1,28 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/shared/components/ui/sonner";
-import ErrorBoundary from "@/shared/components/ErrorBoundary";
 import BackendErrorBoundary from "@/shared/components/BackendErrorBoundary";
+import ErrorBoundary from "@/shared/components/ErrorBoundary";
+import { LoadingSpinner } from "@/shared/components/LoadingSpinner";
+import { Toaster } from "@/shared/components/ui/sonner";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-// Lazy load pages for code splitting
-const HomePage = lazy(() => import("./HomePage"));
-const ListUsersPage = lazy(() => import("./features/users/useCases/ListUsersPage"));
-const CreateUserPage = lazy(() => import("./features/users/useCases/CreateUserPage"));
-const EditUserPage = lazy(() => import("./features/users/useCases/EditUserPage"));
-const NotFoundPage = lazy(() => import("./shared/components/NotFoundPage"));
+// Quote feature pages
+const CreateQuotePage = lazy(() =>
+  import("./features/quotes/useCases/CreateQuotePage").then((m) => ({
+    default: m.CreateQuotePage,
+  }))
+);
+const NegotiationPage = lazy(() =>
+  import("./features/quotes/useCases/NegotiationPage").then((m) => ({
+    default: m.NegotiationPage,
+  }))
+);
+const PastNegotiationsPage = lazy(() =>
+  import("./features/quotes/useCases/PastNegotiationsPage").then((m) => ({
+    default: m.PastNegotiationsPage,
+  }))
+);
 
 // Initialize Convex client
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
@@ -26,17 +37,49 @@ const queryClient = new QueryClient({
   },
 });
 
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <LoadingSpinner size="lg" text="Loading..." />
+    </div>
+  );
+}
+
+function SkipToMainContent() {
+  return (
+    <a
+      href="#main-content"
+      className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+    >
+      Skip to main content
+    </a>
+  );
+}
+
 function AppRoutes() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/users" element={<ListUsersPage />} />
-        <Route path="/users/new" element={<CreateUserPage />} />
-        <Route path="/users/:id" element={<EditUserPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
+    <>
+      <SkipToMainContent />
+      <Suspense fallback={<PageLoader />}>
+        <main id="main-content" tabIndex={-1} className="outline-none">
+          <Routes>
+            {/* Default redirect to quotes/new */}
+            <Route path="/" element={<Navigate to="/quotes/new" replace />} />
+
+            {/* Quote Routes */}
+            <Route path="/quotes/new" element={<CreateQuotePage />} />
+            <Route path="/quotes/history" element={<PastNegotiationsPage />} />
+            <Route
+              path="/quotes/:quoteId/negotiations"
+              element={<NegotiationPage />}
+            />
+
+            {/* Fallback - redirect to quotes/new */}
+            <Route path="*" element={<Navigate to="/quotes/new" replace />} />
+          </Routes>
+        </main>
+      </Suspense>
+    </>
   );
 }
 
