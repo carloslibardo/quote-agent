@@ -36,3 +36,6 @@ src/hardware/**/config.h
 
 # Bun config (generated during deployment)
 bunfig.toml
+
+# Mastra build output
+.mastra
