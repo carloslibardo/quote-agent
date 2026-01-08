@@ -1,288 +1,182 @@
-# Vite Template Clean
+# Quote Agent
 
-A production-ready React + Vite + Convex SPA template with Domain-Driven Design architecture and shadcn/ui components.
+AI-driven supplier negotiation platform that automates multi-agent conversations between a brand and suppliers to find the best sourcing deal for footwear products.
 
-## 🚀 Features
+## How It Works
 
-- **Modern Stack**: React 18, TypeScript 5.8, Vite 5.4
-- **Serverless Backend**: Convex for real-time database and functions
-- **DDD Architecture**: Domain-Driven Design pattern for scalable code organization
-- **UI Library**: 49 shadcn/ui components built on Radix UI
-- **Styling**: Tailwind CSS v4 with neutral design system
-- **Forms**: React Hook Form + Zod validation
-- **State Management**: React Query for server state
-- **Code Splitting**: Lazy loading routes for optimal performance
-- **SPA Ready**: Configured for client-side routing with Cloudflare Workers
-- **AI-Friendly**: Cursor AI rules and commands included
+The platform runs **parallel negotiations** with 3 supplier agents simultaneously. Each negotiation consists of 3-4 rounds of back-and-forth offers, after which a weighted scoring engine selects the best supplier.
 
-## 📋 Prerequisites
+```mermaid
+sequenceDiagram
+    participant User
+    participant BrandAgent
+    participant Supplier1
+    participant Supplier2
+    participant Supplier3
+    participant Scoring
 
-- [Bun](https://bun.sh/) (recommended) or Node.js 18+
-- [Convex Account](https://dashboard.convex.dev/) (free tier available)
-
-## 🏁 Quick Start
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/techlibs/vite-template-clean.git my-app
-cd my-app
+    User->>BrandAgent: Set priorities + products
+    par Parallel Negotiations
+        BrandAgent->>Supplier1: Negotiate (3-4 rounds)
+        BrandAgent->>Supplier2: Negotiate (3-4 rounds)
+        BrandAgent->>Supplier3: Negotiate (3-4 rounds)
+    end
+    Supplier1-->>Scoring: Final offer
+    Supplier2-->>Scoring: Final offer
+    Supplier3-->>Scoring: Final offer
+    Scoring->>User: Weighted decision + reasoning
 ```
 
-### 2. Install Dependencies
+### Negotiation Flow
+
+1. **User Input**: Select products, quantities, and priority weights (quality, cost, lead time, payment terms)
+2. **Brand Agent**: Represents the buyer's interests, negotiates based on user priorities
+3. **Supplier Agents**: Each has distinct personality and pricing strategy
+4. **Scoring Engine**: Evaluates final offers using weighted scoring
+5. **Decision**: AI generates reasoning explaining the supplier selection
+
+## How the Brand Agent Selects the Best Supplier
+
+The brand agent uses a **weighted scoring formula** to rank suppliers:
+
+| Criterion | How It's Scored | Example |
+|-----------|-----------------|---------|
+| **Quality** | Normalized from 0-5 rating | 4.7/5 → 85/100 |
+| **Cost** | Relative pricing (lowest = 100) | Cheapest gets 100, most expensive gets 0 |
+| **Lead Time** | Faster = higher score | 15 days → 90/100, 45 days → 30/100 |
+| **Payment Terms** | Even splits favored | 33/33/33 → 100, 30/70 → 60 |
+
+**Total Score** = (Quality × weight%) + (Cost × weight%) + (LeadTime × weight%) + (PaymentTerms × weight%)
+
+The user sets priority weights (summing to 100%), which determines how much each factor influences the final decision.
+
+## Supplier Agent Personalities
+
+Each supplier agent has a distinct negotiation strategy:
+
+| Supplier | Strategy | Quality | Lead Time | Payment | Price Flexibility |
+|----------|----------|---------|-----------|---------|-------------------|
+| **Supplier 1** | Value-focused | 4.0/5 | 45 days | 33/33/33 | Up to 15% |
+| **Supplier 2** | Quality-focused | 4.7/5 | 25 days | 30/70 | Up to 12% |
+| **Supplier 3** | Speed-focused | 4.0/5 | 15 days | 30/70 | Up to 18% |
+
+**Supplier 1** leads with competitive pricing and volume discounts. Best for cost-conscious buyers.
+
+**Supplier 2** defends premium pricing with quality arguments. Best for high-end products.
+
+**Supplier 3** highlights fast delivery and reliability. Best for urgent restocks.
+
+### Negotiation Tools
+
+All agents use structured tools for negotiation actions:
+
+- `propose-offer` - Submit initial offer with price, lead time, payment terms
+- `counter-offer` - Counter previous offer with modified terms
+- `accept-offer` - Accept terms and finalize the deal
+
+Suppliers can also suggest **material substitutions** (e.g., synthetic leather instead of premium leather) to reduce costs.
+
+## Project Structure
+
+```
+src/
+├── mastra/                    # AI agent system
+│   ├── agents/
+│   │   ├── brand-agent.ts     # Buyer's negotiation agent
+│   │   └── supplier-agent.ts  # Supplier agent factory (3 personalities)
+│   ├── workflows/
+│   │   └── negotiation-workflow.ts  # Orchestrates parallel negotiations
+│   └── tools/
+│       ├── negotiation-tools.ts     # Propose, counter, accept tools
+│       └── scoring-tool.ts          # Weighted scoring engine
+├── server/                    # Convex backend
+│   ├── schema.ts              # Database schema
+│   ├── quotes.ts              # Quote mutations & queries
+│   ├── negotiations.ts        # Negotiation state management
+│   └── messages.ts            # Real-time message storage
+├── features/quotes/           # UI feature module
+│   ├── useCases/              # Pages (CreateQuote, Negotiation, History)
+│   └── ui/                    # Components (ConversationMessages, etc.)
+└── shared/                    # Shared components, hooks, utilities
+```
+
+See [AGENTS.md](AGENTS.md) for the complete project structure and task breakdown.
+
+## Quickstart
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) 18+ or [Bun](https://bun.sh/)
+- [Bun](https://bun.sh/) runtime & package manager
+- [Convex account](https://dashboard.convex.dev/) (free tier)
+- OpenAI API key
+
+### Setup
 
 ```bash
+# 1. Install dependencies
 bun install
+
+# 2. Configure environment
+cp .env.example .env
 ```
 
-### 3. Setup Convex Backend
+Add your API keys to `.env`:
 
-```bash
-# Login to Convex
-bunx convex dev
-
-# This will:
-# - Create a new Convex project (or link to existing)
-# - Generate the VITE_CONVEX_URL automatically
-# - Start the Convex dev server
+```env
+OPENAI_API_KEY=sk-...
+VITE_OPENAI_API_KEY=sk-...
 ```
 
-### 4. Start Development Server
+### Run Development Servers
+
+The app requires **3 terminals** running simultaneously:
 
 ```bash
-# In a new terminal
+# Terminal 1: Convex backend
+bun run convex:dev
+
+# Terminal 2: Mastra AI server (port 4111)
+bun run dev:mastra
+
+# Terminal 3: Vite frontend (port 5173)
 bun run dev
 ```
 
-Visit `http://localhost:8080` to see your app running!
+Open [http://localhost:5173](http://localhost:5173) to start negotiating.
 
-## 📁 Project Structure
+## Tech Stack
 
-```
-vite-template-clean/
-├── src/
-│   ├── features/           # Feature modules (DDD)
-│   │   └── users/          # Example: User management
-│   │       ├── domain/     # Business logic, hooks, types
-│   │       ├── useCases/   # Pages (List, Create, Edit)
-│   │       └── ui/         # Feature-specific components
-│   ├── server/             # Convex backend
-│   │   ├── schema.ts       # Database schema
-│   │   └── users.ts        # CRUD functions
-│   ├── shared/             # Reusable code
-│   │   ├── components/     # UI components
-│   │   │   ├── ui/         # 49 shadcn/ui components
-│   │   │   └── ...         # Layouts, common components
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── lib/            # Utilities
-│   │   └── styles/         # Global CSS
-│   ├── App.tsx             # Routes & providers
-│   └── main.tsx            # Entry point
-├── .cursor/                # Cursor AI configuration
-└── docs/                   # Documentation (create this)
-```
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 18, TypeScript, Tailwind CSS, shadcn/ui |
+| **Backend** | Convex (real-time database & server functions) |
+| **AI Framework** | Mastra.ai (multi-agent orchestration) |
+| **AI Model** | OpenAI GPT-4o |
+| **Validation** | Zod schemas |
+| **Routing** | React Router v7 |
 
-## 🏗️ Architecture
-
-This template follows **Domain-Driven Design (DDD)** principles:
-
-### Feature Structure
-
-Each feature follows this pattern:
-
-```
-features/your-feature/
-├── domain/              # Core business logic
-│   ├── types.ts         # TypeScript types & interfaces
-│   ├── useYourFeature.ts  # Domain hooks (Convex queries/mutations)
-│   └── services/        # Business logic services (optional)
-├── useCases/            # Application use cases (pages)
-│   ├── ListPage.tsx
-│   ├── CreatePage.tsx
-│   └── EditPage.tsx
-└── ui/                  # Feature-specific UI components
-    ├── YourForm.tsx
-    └── YourCard.tsx
-```
-
-### Data Flow
-
-```
-User Action → Domain Hook → Convex Function → Database
-                ↓
-          Component Renders
-```
-
-## 🎨 Design System
-
-- **Colors**: Neutral gray palette (easily customizable)
-- **Components**: 49 shadcn/ui components
-- **Typography**: System fonts for maximum performance
-- **Theming**: Light/dark mode support via next-themes
-
-### Customizing Colors
-
-Edit `src/shared/styles/index.css`:
-
-```css
-:root {
-  --primary: hsl(220 13% 20%);  /* Change to your brand color */
-  --primary-foreground: hsl(0 0% 100%);
-}
-```
-
-## 📚 Available Scripts
+## Scripts
 
 ```bash
-# Development
-bun run dev              # Start dev server (port 8080)
-bunx convex dev          # Start Convex backend
-
-# Production
-bun run build            # Build for production
-bun run preview          # Preview production build
-
-# Code Quality
-bun run lint             # Run ESLint
-bun run lint:fix         # Fix ESLint issues
-bun run format           # Format with Prettier
-bun run typecheck        # Check TypeScript types
-bun run pre-commit       # Run all checks (lint, format, typecheck)
+bun run dev           # Start Vite dev server
+bun run dev:mastra    # Start Mastra AI server
+bun run convex:dev    # Start Convex backend
+bun run build         # Production build
+bun run test          # Run tests
+bun run typecheck     # TypeScript check
+bun run lint          # ESLint
 ```
 
-## 🔥 Creating a New Feature
+## Environment Variables
 
-### 1. Generate Feature Structure
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | Yes | OpenAI API key (server-side) |
+| `VITE_OPENAI_API_KEY` | Yes | OpenAI API key (client-side) |
+| `VITE_MASTRA_API_URL` | No | Mastra server URL (default: `http://localhost:4111`) |
+| `CONVEX_DEPLOYMENT` | No | Convex deployment URL |
 
-```bash
-mkdir -p src/features/my-feature/{domain,useCases,ui}
-```
+## License
 
-### 2. Define Database Schema
-
-Edit `src/server/schema.ts`:
-
-```typescript
-export default defineSchema({
-  myTable: defineTable({
-    name: v.string(),
-    description: v.string(),
-  }),
-});
-```
-
-### 3. Create Convex Functions
-
-Create `src/server/myTable.ts`:
-
-```typescript
-import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-
-export const list = query({
-  handler: async (ctx) => {
-    return await ctx.db.query("myTable").collect();
-  },
-});
-
-export const create = mutation({
-  args: { name: v.string(), description: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db.insert("myTable", args);
-  },
-});
-```
-
-### 4. Create Domain Types & Hooks
-
-See `src/features/users/` for a complete example.
-
-### 5. Create UI Components & Pages
-
-Follow the Users feature as a reference implementation.
-
-### 6. Add Routes
-
-Edit `src/App.tsx` to add your new routes.
-
-## 🌐 Deployment
-
-### Cloudflare Workers (Recommended)
-
-```bash
-# Build for production
-bun run build
-
-# Deploy to Cloudflare
-bunx wrangler deploy
-```
-
-### Vercel / Netlify
-
-The template works out of the box with Vercel and Netlify. Just connect your repository and deploy.
-
-## 🤖 AI-Assisted Development
-
-This template includes production-grade development rules in `.clinerules`:
-
-- **Architecture & DDD patterns**: Feature organization, domain/useCases/ui structure
-- **React best practices**: Components, hooks, state management, performance
-- **TypeScript guidelines**: Types, functions, error handling
-- **Convex backend patterns**: Schema, queries, mutations, hooks
-- **UI & Styling**: shadcn/ui, Tailwind CSS, PageLayout patterns, forms
-- **Code quality**: Formatting, linting, testing guidelines
-- **Git workflow**: Commits, branches, conventional commits
-- **Documentation standards**: Comments, README, architecture docs
-
-Claude Code automatically reads `.clinerules` on every interaction to ensure consistent, production-ready code.
-
-## 🎯 What's Included
-
-### UI Components (49 total)
-
-Accordion, Alert, AlertDialog, Avatar, Badge, Button, Calendar, Card, Carousel, Checkbox, Collapsible, Command, Context Menu, Dialog, Drawer, Dropdown Menu, Form, Hover Card, Input, Input OTP, Label, Menubar, Navigation Menu, Popover, Progress, Radio Group, Resizable, Scroll Area, Select, Separator, Sheet, Skeleton, Slider, Sonner, Switch, Table, Tabs, Textarea, Toast, Toggle, Toggle Group, Tooltip
-
-### Utility Hooks
-
-- `useBreakpoint`: Responsive breakpoints
-- `useDebounce`: Debounce values
-- `useIsHydrated`: SSR hydration detection
-- `useMediaQuery`: Media query matching
-- `useMounted`: Mount detection
-- `useOnlineStatus`: Network status
-- `useScrollToBottom`: Auto-scroll behavior
-- `useThrottle`: Throttle values
-
-### Layout Components
-
-- `PageLayout`: Standard page wrapper with title, description, back button
-- `Header`: App header with logo and navigation
-- `BottomNav`: Mobile-friendly bottom navigation
-- `EmptyState`: Empty state placeholder
-- `ErrorBoundary`: Error handling
-- `NotFoundPage`: 404 page
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-MIT License - feel free to use this template for any project.
-
-## 🙏 Acknowledgments
-
-- [shadcn/ui](https://ui.shadcn.com/) for the amazing component library
-- [Convex](https://convex.dev/) for the serverless backend
-- [Tailwind CSS](https://tailwindcss.com/) for the utility-first CSS framework
-- [Vite](https://vitejs.dev/) for the blazing-fast build tool
-
-## 💬 Support
-
-- [GitHub Issues](https://github.com/techlibs/vite-template-clean/issues)
-- [Convex Docs](https://docs.convex.dev/)
-- [shadcn/ui Docs](https://ui.shadcn.com/)
-
----
-
-Built with ❤️ by [techlibs](https://github.com/techlibs)
+MIT
