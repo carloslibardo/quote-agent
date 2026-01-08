@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  UserCheck,
+  History,
   Shield,
   type LucideIcon,
 } from "lucide-react";
@@ -22,19 +22,15 @@ const BottomNav = ({ isAdmin }: BottomNavProps) => {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    if (path === "/users") {
-      // Active for /users and /users/:id
-      return (
-        location.pathname === "/users" ||
-        location.pathname.startsWith("/users/")
-      );
+    if (path === "/quotes/history") {
+      return location.pathname === "/quotes/history";
     }
     return location.pathname === path;
   };
 
   const navItems: NavItem[] = [
     { path: "/", iconSrc: "/logo-icon-white.png", label: "Home" },
-    { path: "/users", icon: UserCheck, label: "Users" },
+    { path: "/quotes/history", icon: History, label: "History" },
   ];
 
   if (isAdmin) {

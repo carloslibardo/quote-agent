@@ -2,6 +2,11 @@
 
 AI-driven supplier negotiation platform that automates multi-agent conversations between a brand and suppliers to find the best sourcing deal for footwear products.
 
+## Live Demo
+
+[![Start New Quote](https://img.shields.io/badge/🚀_Start_New_Quote-007ACC?style=for-the-badge)](https://quote-agent.projects.techlibs.io/quotes/new)
+[![View Past Negotiations](https://img.shields.io/badge/📋_View_Past_Negotiations-6c757d?style=for-the-badge)](https://quote-agent.projects.techlibs.io/quotes/history)
+
 ## How It Works
 
 The platform runs **parallel negotiations** with 3 supplier agents simultaneously. Each negotiation consists of 3-4 rounds of back-and-forth offers, after which a weighted scoring engine selects the best supplier.
