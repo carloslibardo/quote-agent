@@ -7,21 +7,15 @@ import { z } from "zod";
  */
 const envSchema = z.object({
   /**
-   * OpenAI API Key - Required for Mastra AI agents
-   * Get your key from: https://platform.openai.com/api-keys
-   */
-  OPENAI_API_KEY: z
-    .string()
-    .min(
-      1,
-      "OPENAI_API_KEY is required. Get your key from https://platform.openai.com/api-keys"
-    ),
-
-  /**
    * Convex Deployment URL - Optional in development (auto-detected)
    * Required in production deployments
    */
   CONVEX_DEPLOYMENT: z.string().optional(),
+
+  /**
+   * Mastra API URL - Optional, defaults to localhost:4111 in development
+   */
+  MASTRA_API_URL: z.string().optional(),
 
   /**
    * Vite mode - Injected by Vite build system
@@ -39,7 +33,7 @@ const envSchema = z.object({
  * @example
  * ```ts
  * import { env } from '@/env';
- * console.log(env.OPENAI_API_KEY);
+ * console.log(env.MODE);
  * ```
  */
 function validateEnv() {
@@ -47,8 +41,8 @@ function validateEnv() {
   const envVars =
     typeof import.meta !== "undefined" && import.meta.env
       ? {
-          OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY,
           CONVEX_DEPLOYMENT: import.meta.env.VITE_CONVEX_DEPLOYMENT,
+          MASTRA_API_URL: import.meta.env.VITE_MASTRA_API_URL,
           MODE: import.meta.env.MODE,
         }
       : process.env;

@@ -30,6 +30,7 @@ jobs:
         run: bunx --bun vite build
         env:
           VITE_CONVEX_URL: ${{ vars.VITE_CONVEX_URL }}
+          VITE_MASTRA_API_URL: ${{ vars.VITE_MASTRA_API_URL }}
 
       - name: Create wrangler.toml and worker.js
         run: |
