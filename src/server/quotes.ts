@@ -109,7 +109,7 @@ export const startNegotiation = mutation({
 
     // Create negotiation records for all 3 suppliers
     const negotiationIds: string[] = [];
-    for (const supplierId of [1, 2, 3] as const) {
+    for (const supplierId of [1, 2, 3, 4] as const) {
       const negotiationId = await ctx.db.insert("negotiations", {
         quoteId: args.quoteId,
         supplierId,

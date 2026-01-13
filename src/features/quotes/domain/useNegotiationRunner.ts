@@ -240,12 +240,17 @@ export function useNegotiationRunner() {
           selectedSupplierId: workflowResult.decision.selectedSupplierId as
             | 1
             | 2
-            | 3,
+            | 3
+            | 4,
           reasoning: workflowResult.decision.reasoning,
           evaluationScores: {
             supplier1: workflowResult.evaluationScores.supplier1,
             supplier2: workflowResult.evaluationScores.supplier2,
             supplier3: workflowResult.evaluationScores.supplier3,
+            // Only include supplier4 if it exists in the workflow result
+            ...(workflowResult.evaluationScores.supplier4 && {
+              supplier4: workflowResult.evaluationScores.supplier4,
+            }),
           },
         });
 

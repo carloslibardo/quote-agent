@@ -47,8 +47,8 @@ export default defineSchema({
   negotiations: defineTable({
     // Reference to parent quote
     quoteId: v.id("quotes"),
-    // Supplier ID: 1, 2, or 3
-    supplierId: v.union(v.literal(1), v.literal(2), v.literal(3)),
+    // Supplier ID: 1, 2, 3, or 4
+    supplierId: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4)),
     // Negotiation status: active | completed | impasse
     status: v.union(
       v.literal("active"),
@@ -134,8 +134,8 @@ export default defineSchema({
   decisions: defineTable({
     // Reference to parent quote
     quoteId: v.id("quotes"),
-    // Selected supplier ID (1, 2, or 3)
-    selectedSupplierId: v.union(v.literal(1), v.literal(2), v.literal(3)),
+    // Selected supplier ID (1, 2, 3, or 4)
+    selectedSupplierId: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4)),
     // Human-readable explanation of decision
     reasoning: v.string(),
     // Evaluation scores for all suppliers
@@ -161,6 +161,15 @@ export default defineSchema({
         paymentTermsScore: v.number(),
         totalScore: v.number(),
       }),
+      supplier4: v.optional(
+        v.object({
+          qualityScore: v.number(),
+          costScore: v.number(),
+          leadTimeScore: v.number(),
+          paymentTermsScore: v.number(),
+          totalScore: v.number(),
+        })
+      ),
     }),
     // Timestamp
     createdAt: v.number(),

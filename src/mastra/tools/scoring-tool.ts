@@ -24,7 +24,7 @@ export type DecisionPriorities = z.infer<typeof prioritiesSchema>;
  * Supplier offer schema for scoring
  */
 export const supplierOfferSchema = z.object({
-  supplierId: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  supplierId: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   supplierName: z.string(),
   qualityRating: z.number().min(0).max(5),
   unitPrice: z.number().positive(),

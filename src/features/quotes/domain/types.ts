@@ -24,7 +24,7 @@ export type MessageSender = "brand" | "supplier" | "user";
 /**
  * Supplier ID type (1, 2, or 3)
  */
-export type SupplierId = 1 | 2 | 3;
+export type SupplierId = 1 | 2 | 3 | 4;
 
 /**
  * Product quantity for quotes
@@ -157,6 +157,7 @@ export interface Decision {
     supplier1: EvaluationScores;
     supplier2: EvaluationScores;
     supplier3: EvaluationScores;
+    supplier4?: EvaluationScores;
   };
   createdAt: number;
 }
@@ -218,6 +219,7 @@ export function getSupplierName(supplierId: SupplierId): string {
     1: "Supplier 1",
     2: "Supplier 2",
     3: "Supplier 3",
+    4: "Supplier 4",
   };
   return names[supplierId];
 }

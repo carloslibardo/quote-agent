@@ -277,6 +277,15 @@ const SUPPLIER_DATA: Record<
     personality: "Speed-focused, highlights fast delivery",
     priceFlexibility: 0.12,
   },
+  4: {
+    name: "FlexiDeal Partners",
+    qualityRating: 4.3,
+    marginMultiplier: 1.4,
+    leadTimeDays: 30,
+    paymentTerms: "50/50",
+    personality: "Deal-focused, highly negotiable on price",
+    priceFlexibility: 0.35,
+  },
 };
 
 // ============================================================================
@@ -963,7 +972,7 @@ const runNegotiations = createStep({
     };
 
     // Build negotiation contexts for each supplier
-    const supplierIds: SupplierId[] = [1, 2, 3];
+    const supplierIds: SupplierId[] = [1, 2, 3, 4];
     const contexts: SupplierNegotiationContext[] = supplierIds.map(
       (supplierId, index) => ({
         supplierId,

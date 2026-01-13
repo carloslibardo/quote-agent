@@ -28,19 +28,23 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import {
-  Clock,
-  MessageSquare,
-  CheckCircle,
-  XCircle,
   AlertTriangle,
-  Tag,
+  CheckCircle,
+  Clock,
   Lightbulb,
+  MessageSquare,
   Percent,
+  Tag,
+  XCircle,
 } from "lucide-react";
+import type {
+  NegotiationWithMessages,
+  ProductOffer,
+  SupplierId,
+} from "../domain/types";
+import { getStatusColor, getSupplierName } from "../domain/types";
 import { ConversationMessages } from "./ConversationMessages";
 import { InterventionInput } from "./InterventionInput";
-import type { NegotiationWithMessages, SupplierId, ProductOffer } from "../domain/types";
-import { getSupplierName, getStatusColor } from "../domain/types";
 
 interface NegotiationAccordionProps {
   negotiations: NegotiationWithMessages[];
@@ -66,6 +70,11 @@ const SUPPLIER_INFO: Record<
     name: "IndonesiaExpress",
     rating: "4.0/5",
     description: "Fast delivery • 15-day delivery • 30/70 payment",
+  },
+  4: {
+    name: "FlexiDeal Partners",
+    rating: "4.3/5",
+    description: "Highly negotiable • 30-day delivery • 50/50 payment",
   },
 };
 
@@ -119,7 +128,11 @@ function ProductInvoiceTable({ products }: { products: ProductOffer[] }) {
                 ${product.unitPrice.toFixed(2)}
               </TableCell>
               <TableCell className="text-right font-medium">
-                ${product.lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                $
+                {product.lineTotal.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </TableCell>
               {hasMaterialSubs && (
                 <TableCell className="text-right">
@@ -227,7 +240,9 @@ export function NegotiationAccordion({
       <CardContent>
         <Accordion
           type="multiple"
-          defaultValue={defaultOpen.length > 0 ? defaultOpen : ["negotiation-1"]}
+          defaultValue={
+            defaultOpen.length > 0 ? defaultOpen : ["negotiation-1"]
+          }
           className="space-y-2"
         >
           {sortedNegotiations.map((negotiation) => {
@@ -319,25 +334,27 @@ export function NegotiationAccordion({
                                 </span>
                               </div>
                             )}
-                            {offer.volumeDiscount && offer.volumeDiscount > 0 && (
-                              <div className="bg-white/50 rounded-md p-2">
-                                <span className="text-muted-foreground block text-xs flex items-center gap-1">
-                                  <Percent className="w-3 h-3" />
-                                  Volume Discount ({offer.volumeDiscountPercent}
-                                  %)
-                                </span>
-                                <span className="font-medium text-green-700">
-                                  -$
-                                  {offer.volumeDiscount.toLocaleString(
-                                    undefined,
-                                    {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    }
-                                  )}
-                                </span>
-                              </div>
-                            )}
+                            {offer.volumeDiscount &&
+                              offer.volumeDiscount > 0 && (
+                                <div className="bg-white/50 rounded-md p-2">
+                                  <span className="text-muted-foreground block text-xs flex items-center gap-1">
+                                    <Percent className="w-3 h-3" />
+                                    Volume Discount (
+                                    {offer.volumeDiscountPercent}
+                                    %)
+                                  </span>
+                                  <span className="font-medium text-green-700">
+                                    -$
+                                    {offer.volumeDiscount.toLocaleString(
+                                      undefined,
+                                      {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                      }
+                                    )}
+                                  </span>
+                                </div>
+                              )}
                             <div className="bg-white/50 rounded-md p-2">
                               <span className="text-muted-foreground block text-xs">
                                 Avg Unit Price

@@ -8,9 +8,9 @@
  * - evaluateSuppliers: Action to evaluate and select supplier
  */
 
-import { mutation, query, action } from "./_generated/server";
 import { v } from "convex/values";
 import { api } from "./_generated/api";
+import { action, mutation, query } from "./_generated/server";
 
 /**
  * Supplier scores schema for validation
@@ -29,12 +29,18 @@ const supplierScoresValidator = v.object({
 export const createDecision = mutation({
   args: {
     quoteId: v.id("quotes"),
-    selectedSupplierId: v.union(v.literal(1), v.literal(2), v.literal(3)),
+    selectedSupplierId: v.union(
+      v.literal(1),
+      v.literal(2),
+      v.literal(3),
+      v.literal(4)
+    ),
     reasoning: v.string(),
     evaluationScores: v.object({
       supplier1: supplierScoresValidator,
       supplier2: supplierScoresValidator,
       supplier3: supplierScoresValidator,
+      supplier4: v.optional(supplierScoresValidator),
     }),
   },
   handler: async (ctx, args) => {
@@ -154,7 +160,7 @@ function calculatePaymentTermsScore(terms: string): number {
 
 // Negotiation type for action context
 interface NegotiationForScoring {
-  supplierId: 1 | 2 | 3;
+  supplierId: 1 | 2 | 3 | 4;
   status: "active" | "completed" | "impasse";
   finalOffer?: {
     unitPrice: number;
@@ -182,17 +188,23 @@ export const evaluateSuppliers = action({
   args: {
     quoteId: v.id("quotes"),
   },
-  handler: async (ctx, args): Promise<{
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
     decisionId: string;
-    selectedSupplierId: 1 | 2 | 3;
+    selectedSupplierId: 1 | 2 | 3 | 4;
     totalScore: number;
-    evaluationScores: Record<string, {
-      qualityScore: number;
-      costScore: number;
-      leadTimeScore: number;
-      paymentTermsScore: number;
-      totalScore: number;
-    }>;
+    evaluationScores: Record<
+      string,
+      {
+        qualityScore: number;
+        costScore: number;
+        leadTimeScore: number;
+        paymentTermsScore: number;
+        totalScore: number;
+      }
+    >;
     reasoning: string;
   }> => {
     // Get quote with priorities
@@ -241,6 +253,7 @@ export const evaluateSuppliers = action({
       1: 4.0,
       2: 4.7,
       3: 4.0,
+      4: 4.3,
     };
 
     for (const negotiation of negotiations) {
@@ -253,7 +266,10 @@ export const evaluateSuppliers = action({
       );
 
       const costScore = finalOffer
-        ? calculateCostScore(finalOffer.unitPrice, allPrices.length > 0 ? allPrices : [100])
+        ? calculateCostScore(
+            finalOffer.unitPrice,
+            allPrices.length > 0 ? allPrices : [100]
+          )
         : 0;
 
       const leadTimeScore = finalOffer
@@ -283,7 +299,7 @@ export const evaluateSuppliers = action({
     }
 
     // Ensure all suppliers have scores (even if they didn't complete)
-    for (const supplierId of [1, 2, 3]) {
+    for (const supplierId of [1, 2, 3, 4]) {
       if (!supplierScores[`supplier${supplierId}`]) {
         supplierScores[`supplier${supplierId}`] = {
           qualityScore: 0,
@@ -296,7 +312,7 @@ export const evaluateSuppliers = action({
     }
 
     // Find winner (highest total score among completed negotiations)
-    let winner = { supplierId: 1 as 1 | 2 | 3, score: 0 };
+    let winner = { supplierId: 1 as 1 | 2 | 3 | 4, score: 0 };
     for (const negotiation of completedNegotiations) {
       const scores = supplierScores[`supplier${negotiation.supplierId}`];
       if (scores.totalScore > winner.score) {
@@ -339,6 +355,7 @@ This selection best aligns with your stated priorities for this sourcing decisio
         supplier1: supplierScores.supplier1,
         supplier2: supplierScores.supplier2,
         supplier3: supplierScores.supplier3,
+        supplier4: supplierScores.supplier4,
       },
     });
 
@@ -351,4 +368,3 @@ This selection best aligns with your stated priorities for this sourcing decisio
     };
   },
 });
-

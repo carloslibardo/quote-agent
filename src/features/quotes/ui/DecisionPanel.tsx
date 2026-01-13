@@ -197,6 +197,7 @@ const SUPPLIER_QUALITY_RATINGS: Record<SupplierId, number> = {
   1: 4.0,
   2: 4.7,
   3: 4.0,
+  4: 4.3,
 };
 
 export function DecisionPanel({
@@ -216,6 +217,7 @@ export function DecisionPanel({
         | "supplier1"
         | "supplier2"
         | "supplier3"
+        | "supplier4"
     ];
 
   return (
@@ -311,21 +313,26 @@ export function DecisionPanel({
           </TabsContent>
 
           <TabsContent value="suppliers" className="mt-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              {([1, 2, 3] as const).map((supplierId) => {
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {([1, 2, 3, 4] as const).map((supplierId) => {
                 const negotiation = negotiations.find(
                   (n) => n.supplierId === supplierId
                 );
                 const supplierKey = `supplier${supplierId}` as
                   | "supplier1"
                   | "supplier2"
-                  | "supplier3";
+                  | "supplier3"
+                  | "supplier4";
+                const supplierScores = decision.evaluationScores[supplierKey];
+
+                // Skip suppliers without scores (e.g., supplier4 on older decisions)
+                if (!supplierScores) return null;
 
                 return (
                   <SupplierCard
                     key={supplierId}
                     supplierId={supplierId}
-                    scores={decision.evaluationScores[supplierKey]}
+                    scores={supplierScores}
                     finalOffer={negotiation?.finalOffer}
                     isWinner={supplierId === decision.selectedSupplierId}
                     qualityRating={SUPPLIER_QUALITY_RATINGS[supplierId]}

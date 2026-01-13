@@ -9,16 +9,16 @@ import { openai } from "@ai-sdk/openai";
 import { Agent } from "@mastra/core/agent";
 
 import {
-  proposeTool,
-  counterOfferTool,
   acceptOfferTool,
+  counterOfferTool,
+  proposeTool,
   rejectOfferTool,
 } from "../tools/negotiation-tools";
 
 /**
  * Supplier ID type (1, 2, or 3)
  */
-export type SupplierId = 1 | 2 | 3;
+export type SupplierId = 1 | 2 | 3 | 4;
 
 /**
  * Supplier characteristics configuration
@@ -122,6 +122,34 @@ export const SUPPLIER_CHARACTERISTICS: Record<
       "Capacity constraints for very large orders",
     ],
   },
+  4: {
+    name: "Supplier 4",
+    qualityRating: 4.3,
+    pricingStrategy: "Premium",
+    basePriceMultiplier: 1.4,
+    leadTimeDays: 30,
+    paymentTerms: "50/50",
+    description:
+      "Deal-oriented supplier focused on building long-term partnerships",
+    negotiationFlexibility: {
+      priceFlexibility: 0.35, // Highly flexible - can reduce up to 35%
+      leadTimeFlexibility: 0.25, // Can reduce up to 25% on lead time
+      paymentFlexibility: true,
+    },
+    strengths: [
+      "Extremely flexible on pricing",
+      "High quality at negotiable rates (4.3/5)",
+      "Partnership-focused approach",
+      "Balanced lead times (30 days)",
+      "Flexible 50/50 payment terms",
+      "Volume discounts stack with negotiated prices",
+    ],
+    limitations: [
+      "Initial quotes are high (expects negotiation)",
+      "May require commitment to future orders",
+      "Quality varies slightly with aggressive pricing",
+    ],
+  },
 };
 
 /**
@@ -162,6 +190,20 @@ function buildSupplierInstructions(supplierId: SupplierId): string {
 - Balance cost savings with delivery speed
 - Be flexible on payment terms for valued partners
 - Emphasize reliability and on-time delivery track record`;
+      break;
+    case 4:
+      negotiationStrategy = `
+## Your Negotiation Strategy (Deal-Focused / Highly Flexible)
+- Start with premium pricing but be VERY willing to negotiate down
+- Your main goal is to WIN the deal - price is your main lever
+- Offer aggressive discounts early to show good faith
+- Match or beat competitor prices when possible
+- Combine volume discounts with negotiated discounts for maximum savings
+- Emphasize building a long-term partnership over one-time margins
+- Be creative with payment terms - offer custom splits if needed
+- Suggest material substitutions proactively to hit buyer's budget
+- Counter offers should always move significantly toward buyer's position
+- In later rounds, accept almost any reasonable offer to close the deal`;
       break;
   }
 
@@ -262,6 +304,7 @@ export function createSupplierAgent(supplierId: SupplierId): Agent {
 export const supplierAgent1 = createSupplierAgent(1);
 export const supplierAgent2 = createSupplierAgent(2);
 export const supplierAgent3 = createSupplierAgent(3);
+export const supplierAgent4 = createSupplierAgent(4);
 
 /**
  * Get all supplier agents
@@ -271,6 +314,7 @@ export function getAllSupplierAgents(): Record<SupplierId, Agent> {
     1: supplierAgent1,
     2: supplierAgent2,
     3: supplierAgent3,
+    4: supplierAgent4,
   };
 }
 

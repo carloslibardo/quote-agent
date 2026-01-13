@@ -9,9 +9,9 @@ import { openai } from "@ai-sdk/openai";
 import { Agent } from "@mastra/core/agent";
 
 import {
-  proposeTool,
-  counterOfferTool,
   acceptOfferTool,
+  counterOfferTool,
+  proposeTool,
   rejectOfferTool,
 } from "../tools/negotiation-tools";
 
@@ -46,6 +46,15 @@ export const SUPPLIER_CHARACTERISTICS = {
     description:
       "Medium quality with fastest delivery. Higher prices for speed.",
   },
+  4: {
+    name: "Supplier 4",
+    qualityRating: 4.3,
+    pricingStrategy: "Negotiable",
+    leadTimeDays: 30,
+    paymentTerms: "50/50",
+    description:
+      "Good quality with highly negotiable pricing. Partnership-focused with balanced terms.",
+  },
 } as const;
 
 /**
@@ -74,13 +83,15 @@ export interface BrandAgentContext {
   userNotes?: string;
   products?: Array<{ productId: string; quantity: number }>;
   userGuidance?: FormattedGuidance;
-  currentSupplierId?: 1 | 2 | 3;
+  currentSupplierId?: 1 | 2 | 3 | 4;
 }
 
 /**
  * Build dynamic instructions based on user priorities and context
  */
-export function buildBrandAgentInstructions(context: BrandAgentContext): string {
+export function buildBrandAgentInstructions(
+  context: BrandAgentContext
+): string {
   const { priorities, userNotes, products, userGuidance, currentSupplierId } =
     context;
 
@@ -126,7 +137,13 @@ You are aware of these supplier characteristics:
 **Supplier 3** (Quality: 4.0/5)
 - Pricing: Expensive
 - Lead Time: 15 days (fastest)
-- Payment: 30/70 (30% upfront, 70% on delivery)`;
+- Payment: 30/70 (30% upfront, 70% on delivery)
+
+**Supplier 4** (Quality: 4.3/5)
+- Pricing: Highly negotiable (starts high but very flexible)
+- Lead Time: 30 days (medium)
+- Payment: 50/50 split (balanced cash flow)
+- Note: Very open to price negotiations - push hard for discounts`;
 
   if (currentSupplierId) {
     const supplier = SUPPLIER_CHARACTERISTICS[currentSupplierId];

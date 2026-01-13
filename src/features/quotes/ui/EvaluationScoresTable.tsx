@@ -23,6 +23,7 @@ interface EvaluationScoresTableProps {
     supplier1: EvaluationScores;
     supplier2: EvaluationScores;
     supplier3: EvaluationScores;
+    supplier4?: EvaluationScores;
   };
   selectedSupplierId: SupplierId;
   priorities: DecisionPriorities;
@@ -60,34 +61,22 @@ export function EvaluationScoresTable({
   selectedSupplierId,
   priorities,
 }: EvaluationScoresTableProps) {
-  const suppliers: Array<{ id: SupplierId; key: "supplier1" | "supplier2" | "supplier3" }> = [
+  // Filter to only include suppliers that have scores
+  const allSuppliers: Array<{ id: SupplierId; key: "supplier1" | "supplier2" | "supplier3" | "supplier4" }> = [
     { id: 1, key: "supplier1" },
     { id: 2, key: "supplier2" },
     { id: 3, key: "supplier3" },
+    { id: 4, key: "supplier4" },
   ];
+  const suppliers = allSuppliers.filter(({ key }) => scores[key] !== undefined);
 
-  // Find highest score for each criterion
+  // Find highest score for each criterion (only from available suppliers)
+  const availableScores = suppliers.map(({ key }) => scores[key]!);
   const highestScores: Record<ScoreKey, number> = {
-    qualityScore: Math.max(
-      scores.supplier1.qualityScore,
-      scores.supplier2.qualityScore,
-      scores.supplier3.qualityScore
-    ),
-    costScore: Math.max(
-      scores.supplier1.costScore,
-      scores.supplier2.costScore,
-      scores.supplier3.costScore
-    ),
-    leadTimeScore: Math.max(
-      scores.supplier1.leadTimeScore,
-      scores.supplier2.leadTimeScore,
-      scores.supplier3.leadTimeScore
-    ),
-    paymentTermsScore: Math.max(
-      scores.supplier1.paymentTermsScore,
-      scores.supplier2.paymentTermsScore,
-      scores.supplier3.paymentTermsScore
-    ),
+    qualityScore: Math.max(...availableScores.map((s) => s.qualityScore)),
+    costScore: Math.max(...availableScores.map((s) => s.costScore)),
+    leadTimeScore: Math.max(...availableScores.map((s) => s.leadTimeScore)),
+    paymentTermsScore: Math.max(...availableScores.map((s) => s.paymentTermsScore)),
   };
 
   return (

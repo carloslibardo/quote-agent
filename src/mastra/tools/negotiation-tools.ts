@@ -38,7 +38,7 @@ export const proposeTool = createTool({
   description:
     "Submit an initial offer proposal with price, lead time, and payment terms",
   inputSchema: z.object({
-    supplierId: z.number().min(1).max(3).describe("Supplier ID (1, 2, or 3)"),
+    supplierId: z.number().min(1).max(4).describe("Supplier ID (1, 2, 3, or 4)"),
     offer: offerSchema.describe("The offer details being proposed"),
     message: z
       .string()

@@ -99,6 +99,15 @@ The Mastra server handles AI workflow execution, Vite serves the frontend, and C
 scripts/
 └── generate-auth-keys.mjs           # JWT key generation (legacy)
 
+docs/
+├── ARCHITECTURE.md                  # System architecture overview
+├── COMPONENTS.md                    # Component documentation
+├── DEPLOYMENT.md                    # Deployment guide
+└── project-requirements/            # Project requirements and tasks
+    ├── AGENTS.md
+    ├── phases/                      # Implementation phases
+    └── tasks/                       # Individual task files (1-19)
+
 src/
 ├── App.tsx                          # Main app with routes
 ├── main.tsx                         # Entry point with env validation
@@ -210,7 +219,7 @@ src/mastra/
 ├── agents/
 │   ├── index.ts                # Agent exports
 │   ├── brand-agent.ts          # Brand negotiation agent (GPT-4o)
-│   └── supplier-agent.ts       # Supplier agent factory (3 suppliers)
+│   └── supplier-agent.ts       # Supplier agent factory (4 suppliers)
 ├── tools/
 │   ├── index.ts                # Tool exports
 │   ├── negotiation-tools.ts    # Propose, counter, accept, reject tools
@@ -309,7 +318,7 @@ pnpx convex run seed:clearQuotes
 
 - **Public Access**: All routes and data are publicly accessible (no authentication)
 - **Shared Quotes**: All quotes are visible to everyone in a shared view
-- Multi-agent negotiation with brand and 3 supplier agents
+- Multi-agent negotiation with brand and 4 supplier agents
 - Parallel negotiations with impasse detection (max 10 rounds)
 - Weighted scoring for supplier selection (quality, cost, lead time, payment terms)
 - Real-time UI updates via Convex subscriptions
